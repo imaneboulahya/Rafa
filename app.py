@@ -23,6 +23,10 @@ class Profile(db.Model):
     last_name = db.Column(db.String(50), nullable=False)
     phone = db.Column(db.String(20), nullable=False)
     email = db.Column(db.String(100))
+    hotel_name = db.Column(db.String(100))
+    check_in_date = db.Column(db.Date)
+    check_out_date = db.Column(db.Date)
+    hotel_notes = db.Column(db.Text)
     nationality = db.Column(db.String(50), nullable=False)
     passport = db.Column(db.String(50))
     cin = db.Column(db.String(50))
@@ -35,6 +39,21 @@ class Profile(db.Model):
     amount_paid = db.Column(db.Float, default=0.0)
     total_amount = db.Column(db.Float, default=0.0)
     service_completed = db.Column(db.Boolean, default=False)
+    
+    # Relationship to hotel bookings (one-to-many)
+    hotel_bookings = db.relationship('HotelBooking', backref='profile', lazy=True)
+
+class HotelBooking(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    profile_id = db.Column(db.Integer, db.ForeignKey('profile.id'), nullable=False)
+    hotel_name = db.Column(db.String(100))
+    check_in_date = db.Column(db.Date)
+    check_out_date = db.Column(db.Date)
+    notes = db.Column(db.Text)
+    room_type = db.Column(db.String(50))
+    booking_reference = db.Column(db.String(50))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
 
 class GroupProfile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -191,9 +210,145 @@ def delete_client(client_id):
     flash('Client deleted successfully!', 'success')
     return redirect(url_for('visa'))
 
-@app.route('/hotel')
+@app.route('/hotel', methods=['GET', 'POST'])
 def hotel():
-    return render_template('hotel.html')
+    search_query = request.args.get('search', '').strip()
+    search_by = request.args.get('search_by', 'name')
+    
+    # Get profiles with hotel service and their bookings
+    query = Profile.query.filter_by(service_type='hotel')
+    
+    if search_query:
+        if search_by == 'name':
+            query = query.filter(db.or_(
+                Profile.first_name.ilike(f'%{search_query}%'),
+                Profile.last_name.ilike(f'%{search_query}%')
+            ))
+        elif search_by == 'passport':
+            query = query.filter(Profile.passport.ilike(f'%{search_query}%'))
+        elif search_by == 'phone':
+            query = query.filter(Profile.phone.ilike(f'%{search_query}%'))
+        elif search_by == 'hotel':
+            # Search in related hotel bookings
+            query = query.join(HotelBooking).filter(
+                HotelBooking.hotel_name.ilike(f'%{search_query}%')
+            )
+    
+    clients = query.order_by(Profile.created_at.desc()).all()
+    
+    return render_template(
+        'hotel.html',
+        clients=clients,
+        search_query=search_query,
+        search_by=search_by
+    )
+
+@app.route('/add_hotel_booking/<int:profile_id>', methods=['GET', 'POST'])
+def add_hotel_booking(profile_id):
+    profile = Profile.query.get_or_404(profile_id)
+    
+    if request.method == 'POST':
+        try:
+            booking = HotelBooking(
+                profile_id=profile_id,
+                hotel_name=request.form.get('hotel_name'),
+                check_in_date=datetime.strptime(request.form['check_in_date'], '%Y-%m-%d'),
+                check_out_date=datetime.strptime(request.form['check_out_date'], '%Y-%m-%d'),
+                notes=request.form.get('notes'),
+                room_type=request.form.get('room_type'),
+                booking_reference=request.form.get('booking_reference')
+            )
+            db.session.add(booking)
+            db.session.commit()
+            flash('Hotel booking added successfully!', 'success')
+            return redirect(url_for('hotel'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error adding booking: {str(e)}', 'danger')
+    
+    return render_template('add_hotel_booking.html', profile=profile)
+
+@app.route('/update_hotel_booking/<int:booking_id>', methods=['POST'])
+def update_hotel_booking(booking_id):
+    booking = HotelBooking.query.get_or_404(booking_id)
+    
+    try:
+        booking.hotel_name = request.form.get('hotel_name')
+        booking.check_in_date = datetime.strptime(request.form['check_in_date'], '%Y-%m-%d')
+        booking.check_out_date = datetime.strptime(request.form['check_out_date'], '%Y-%m-%d')
+        booking.notes = request.form.get('notes')
+        booking.room_type = request.form.get('room_type')
+        booking.booking_reference = request.form.get('booking_reference')
+        
+        # Update payment in profile
+        profile = booking.profile
+        profile.amount_paid = float(request.form.get('amount_paid', 0))
+        profile.total_amount = float(request.form.get('total_amount', 0))
+        profile.service_completed = 'service_completed' in request.form
+        
+        db.session.commit()
+        flash('Booking updated successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating booking: {str(e)}', 'danger')
+    
+    return redirect(url_for('hotel'))
+
+@app.route('/update_hotel_client/<int:client_id>', methods=['POST'])
+def update_hotel_client(client_id):
+    client = Profile.query.get_or_404(client_id)
+    
+    try:
+        # Get form data
+        hotel_name = request.form.get('hotel_name')
+        check_in_date_str = request.form.get('check_in_date')
+        check_out_date_str = request.form.get('check_out_date')
+        
+        # Validate required fields
+        if not all([hotel_name, check_in_date_str, check_out_date_str]):
+            flash('Please fill all required fields', 'danger')
+            return redirect(url_for('hotel'))
+        
+        # Convert dates
+        try:
+            check_in_date = datetime.strptime(check_in_date_str, '%Y-%m-%d').date()
+            check_out_date = datetime.strptime(check_out_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            flash('Invalid date format. Please use YYYY-MM-DD', 'danger')
+            return redirect(url_for('hotel'))
+        
+        # Update client record
+        client.hotel_name = hotel_name
+        client.check_in_date = check_in_date
+        client.check_out_date = check_out_date
+        client.hotel_notes = request.form.get('hotel_notes', '')
+        
+        # Update payment info
+        client.amount_paid = float(request.form.get('amount_paid', 0))
+        client.total_amount = float(request.form.get('total_amount', 0))
+        client.service_completed = 'service_completed' in request.form
+        
+        db.session.commit()
+        flash('Hotel booking updated successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating booking: {str(e)}', 'danger')
+    
+    return redirect(url_for('hotel'))
+
+@app.route('/delete_hotel_client/<int:client_id>', methods=['POST'])
+def delete_hotel_client(client_id):
+    client = Profile.query.get_or_404(client_id)
+    
+    try:
+        db.session.delete(client)
+        db.session.commit()
+        flash('Hotel booking deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting hotel booking: {str(e)}', 'danger')
+    
+    return redirect(url_for('hotel'))
 
 @app.route('/billet')
 def billet():

@@ -1,133 +1,499 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rafa Platform - Premium Travel Services</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Clients | Rafa Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/hotel.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Hotel-specific styles */
+        .client-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .client-card.completed {
+            border-left: 5px solid #28a745;
+        }
+        
+        .client-card.pending {
+            border-left: 5px solid #ffc107;
+        }
+        
+        .client-info {
+            padding: 20px;
+            flex: 1;
+        }
+        
+        .hotel-details {
+            margin: 10px 0;
+        }
+        
+        .hotel-status {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-completed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .payment-info {
+            background-color: #f8f9fa;
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .payment-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .payment-field {
+            flex: 1;
+        }
+        
+        .payment-field label {
+            display: block;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        
+        .payment-field span {
+            font-weight: 600;
+        }
+        
+        .hotel-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .form-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        
+        .form-group input, 
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .checkbox {
+            display: flex;
+            align-items: center;
+        }
+        
+        .checkbox label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .checkbox input {
+            margin-right: 8px;
+        }
+        
+        .client-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .confirm-btn, .delete-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .confirm-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            font-size: 1.2rem;
+            line-height: 1;
+            padding: 8px 12px;
+        }
+        
+        .search-container {
+            margin: 20px 0;
+        }
+        
+        .search-form {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .search-input-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .search-input-group input {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .search-select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+        }
+        
+        .search-btn {
+            padding: 10px 20px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .clear-search {
+            padding: 10px;
+            color: #6c757d;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        
+        .no-clients {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .no-clients p {
+            margin-bottom: 20px;
+            color: #6c757d;
+        }
+        
+        .cta-button {
+            padding: 10px 20px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 768px) {
+            .client-card {
+                flex-direction: column;
+            }
+            
+            .payment-details {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .hotel-form {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
 <body>
-  <!-- Services Sidebar -->
-  <div class="services-sidebar" id="servicesSidebar">
-    <h3 style="color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 1rem;">Our Services</h3>
-    <ul class="services-list">
-      <li><a href="{{ url_for('visa') }}">Visa</a></li>
-      <li><a href="{{ url_for('hotel') }}">Hotel</a></li>
-      <li><a href="{{ url_for('billet') }}">Billet</a></li>
-      <li><a href="{{ url_for('hajj') }}">Hajj</a></li>
-      <li><a href="{{ url_for('omra') }}">Omra</a></li>
-      <li><a href="{{ url_for('autocar') }}">Autocar</a></li>
-      <li><a href="{{ url_for('bateau') }}">Bateau</a></li>
-      <li><a href="{{ url_for('traduction') }}">Traduction</a></li>
-      <li><a href="{{ url_for('assurance') }}">Assurance</a></li>
-      <li><a href="{{ url_for('voyages') }}">Voyages organisés</a></li>
-      <li><a href="{{ url_for('transfert') }}">Transfert</a></li>
-      <li><a href="{{ url_for('statistics') }}">Statistics</a></li>
-      <li><a href="{{ url_for('factures') }}">Factures</a></li>
-      <li><a href="#">Autre</a></li>
-    </ul>
-  </div>
-  
-  <!-- Overlay -->
-  <div class="overlay" id="overlay"></div>
-
-  <!-- Header/Navigation -->
-  <header class="navbar">
-    <a href="{{ url_for('index') }}" class="logo-link">
-      <img src="{{ url_for('static', filename='images/logo.jpeg') }}" alt="Rafa Logo" class="logo-img" width="150" height="50">
-    </a>
-    
-    <button class="toggle-button" aria-label="Toggle navigation">
-      <span class="bar"></span>
-      <span class="bar"></span>
-      <span class="bar"></span>
-    </button>
-    
-    <nav class="navbar-links">
-      <ul>
-        <li><a href="{{ url_for('index') }}">Home</a></li>
-        <li><a href="{{ url_for('create_profile') }}">Create</a></li>
-        <li><a href="#contact">Contact</a></li>
-        <li><button class="sidebar-toggle" id="sidebarToggle">Services</button></li>
-      </ul>
-    </nav>
-  </header>
-  <!-- Main Content -->
-  <main id="main-content">
-    <!-- Hero Section -->
-    <section class="hero">
-    </section>
-  </main>
-  <!-- Footer -->
-  <footer id="contact">
-    <div class="footer-content">
-      <div class="footer-section">
-        <h3 class="o">Quick Links</h3>
-        <ul>
-          <li><a href="{{ url_for('index') }}">Home</a></li>
-          <li><a href="{{ url_for('create_profile') }}">Create Profile</a></li>
-          <li><a href="#services">Services</a></li>
+    <!-- Services Sidebar -->
+    <div class="services-sidebar" id="servicesSidebar">
+        <h3 style="color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 1rem;">Our Services</h3>
+        <ul class="services-list">
+            <li><a href="{{ url_for('visa') }}">Visa</a></li>
+            <li><a href="{{ url_for('hotel') }}">Hotel</a></li>
+            <li><a href="{{ url_for('billet') }}">Billet</a></li>
+            <li><a href="{{ url_for('hajj') }}">Hajj</a></li>
+            <li><a href="{{ url_for('omra') }}">Omra</a></li>
+            <li><a href="{{ url_for('autocar') }}">Autocar</a></li>
+            <li><a href="{{ url_for('bateau') }}">Bateau</a></li>
+            <li><a href="{{ url_for('traduction') }}">Traduction</a></li>
+            <li><a href="{{ url_for('assurance') }}">Assurance</a></li>
+            <li><a href="{{ url_for('voyages') }}">Voyages organisés</a></li>
+            <li><a href="{{ url_for('transfert') }}">Transfert</a></li>
+            <li><a href="{{ url_for('statistics') }}">Statistics</a></li>
+            <li><a href="{{ url_for('factures') }}">Factures</a></li>
+            <li><a href="#">Autre</a></li>
         </ul>
-      </div>
-      
-      <div class="footer-section">
-        <h3 class="o">Contact Us</h3>
-        <ul>
-          <li>Email: Rafavoyages@gmail.com</li>
-          <li>Phone: +212 650-212366</li>
-          <li>Address: 22 Imm Narjiss 1 Av Allal Ben Abdellah, Taza 35000</li>
-        </ul>
-      </div>
-      
-      <div class="footer-section">
-        <h3 class="o">Follow Us</h3>
-        <ul>
-          <li><a href="https://www.instagram.com/agencerafavoyages">Instagram</a></li>
-          <li><a href="#">LinkedIn</a></li>
-          <li><a href="https://www.facebook.com/almassaAgencyTravel">Facebook</a></li>
-        </ul>
-      </div>
     </div>
     
-    <div class="copyright">
-      <p>&copy; 2025 Rafa Platform. All rights reserved.</p>
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Header/Navigation -->
+    <header class="navbar">
+        <a href="{{ url_for('index') }}" class="logo-link">
+            <img src="{{ url_for('static', filename='images/logo.jpeg') }}" alt="Rafa Logo" class="logo-img" width="150" height="50">
+        </a>
+        
+        <button class="toggle-button" aria-label="Toggle navigation">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+        
+        <nav class="navbar-links">
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('create_profile') }}">Create</a></li>
+                <li><a href="{{ url_for('clients') }}">Clients</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><button class="sidebar-toggle" id="sidebarToggle">Services</button></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content">
+        <section class="client-management">
+            <h1>Hotel Service Clients</h1>
+            <div class="search-container">
+                <form method="GET" action="{{ url_for('hotel') }}" class="search-form">
+                    <div class="search-input-group">
+                        <input type="text" name="search" placeholder="Search clients..." value="{{ search_query if search_query }}">
+                        <select name="search_by" class="search-select">
+                            <option value="name" {% if search_by == 'name' %}selected{% endif %}>Name</option>
+                            <option value="passport" {% if search_by == 'passport' %}selected{% endif %}>Passport</option>
+                            <option value="phone" {% if search_by == 'phone' %}selected{% endif %}>Phone</option>
+                            <option value="hotel" {% if search_by == 'hotel' %}selected{% endif %}>Hotel Name</option>
+                        </select>
+                        <button type="submit" class="search-btn">Search</button>
+                        {% if search_query %}
+                        <a href="{{ url_for('hotel') }}" class="clear-search">Clear</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+            
+            <div class="client-list">
+                {% for client in clients %}
+                <div class="client-card {% if client.service_completed %}completed{% else %}pending{% endif %}">
+                    <div class="client-info">
+                        <h3>{{ client.first_name }} {{ client.last_name }}</h3>
+                        <div class="hotel-details">
+                            <p><strong>Hotel Name:</strong> {{ client.hotel_name if client.hotel_name else 'Not specified' }}</p>
+                            <p><strong>Check-in:</strong> {{ client.check_in_date.strftime('%Y-%m-%d') if client.check_in_date else 'Not set' }}</p>
+                            <p><strong>Check-out:</strong> {{ client.check_out_date.strftime('%Y-%m-%d') if client.check_out_date else 'Not set' }}</p>
+                            <p><strong>Status:</strong> 
+                                <span class="hotel-status {% if client.service_completed %}status-completed{% else %}status-pending{% endif %}">
+                                    {% if client.service_completed %}Completed{% else %}Pending{% endif %}
+                                </span>
+                            </p>
+                        </div>
+                        <p><strong>Phone:</strong> {{ client.phone }}</p>
+                        <p><strong>Passport:</strong> {{ client.passport if client.passport else 'Not provided' }}</p>
+                        {% if client.hotel_notes %}
+                        <p><strong>Notes:</strong> {{ client.hotel_notes }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="payment-info">
+                        <div class="payment-details">
+                            <div class="payment-field">
+                                <label>Amount Paid:</label>
+                                <span class="amount-paid">{{ "%.2f"|format(client.amount_paid if client.amount_paid is not none else 0) }} DH</span>
+                            </div>
+                            <div class="payment-field">
+                                <label>Amount Due:</label>
+                                <span class="amount-remaining">
+                                    {{ "%.2f"|format((client.total_amount if client.total_amount is not none else 0) - (client.amount_paid if client.amount_paid is not none else 0)) }} DH
+                                </span>
+                            </div>
+                            <div class="payment-field">
+                                <label>Total Cost:</label>
+                                <span class="total-amount">{{ "%.2f"|format(client.total_amount if client.total_amount is not none else 0) }} DH</span>
+                            </div>
+                        </div>
+                        
+                        <form class="hotel-form" method="POST" action="{{ url_for('update_hotel_client', client_id=client.id) }}">
+                            <div class="form-group">
+        <label>Hotel Name</label>
+        <input type="text" name="hotel_name" value="{{ client.hotel_name if client.hotel_name }}" required>
     </div>
-  </footer>
+    <div class="form-group">
+        <label>Check-in Date</label>
+        <input type="date" name="check_in_date" 
+               value="{{ client.check_in_date.strftime('%Y-%m-%d') if client.check_in_date }}" required>
+    </div>
+    <div class="form-group">
+        <label>Check-out Date</label>
+        <input type="date" name="check_out_date" 
+               value="{{ client.check_out_date.strftime('%Y-%m-%d') if client.check_out_date }}" required>
+    </div>
+                            <div class="form-group">
+                                <label>Update Payment</label>
+                                <input type="number" name="amount_paid" 
+                                       value="{{ client.amount_paid if client.amount_paid is not none else 0 }}" 
+                                       step="0.01" min="0" 
+                                       max="{{ client.total_amount if client.total_amount is not none else '' }}">
+                            </div>
+                            <div class="form-group">
+                                <label>Update Total</label>
+                                <input type="number" name="total_amount" 
+                                       value="{{ client.total_amount if client.total_amount is not none else 0 }}" 
+                                       step="0.01" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Notes</label>
+                                <input type="text" name="hotel_notes" value="{{ client.hotel_notes if client.hotel_notes }}">
+                            </div>
+                            <div class="form-group checkbox">
+                                <label>
+                                    <input type="checkbox" name="service_completed" {% if client.service_completed %}checked{% endif %}>
+                                    Booking Completed
+                                </label>
+                            </div>
+                            <div class="client-actions">
+                                <button type="submit" class="confirm-btn">Save</button>
+                                <a href="{{ url_for('delete_hotel_client', client_id=client.id) }}" class="delete-btn" onclick="return confirm('Delete this hotel booking?')">×</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {% else %}
+                <div class="no-clients">
+                    <p>No hotel clients found.</p>
+                    <a href="{{ url_for('create_profile') }}" class="cta-button">Create New Hotel Client</a>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
 
-  <script>
-    // JavaScript remains the same as in your original template
-    const toggleButton = document.querySelector('.toggle-button');
-    const navbarLinks = document.querySelector('.navbar-links');
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3 class="o">Quick Links</h3>
+                <ul>
+                    <li><a href="{{ url_for('index') }}">Home</a></li>
+                    <li><a href="{{ url_for('create_profile') }}">Create Profile</a></li>
+                    <li><a href="#services">Services</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3 class="o">Contact Us</h3>
+                <ul>
+                    <li>Email: Rafavoyages@gmail.com</li>
+                    <li>Phone: +212 650-212366</li>
+                    <li>Address: 22 Imm Narjiss 1 Av Allal Ben Abdellah, Taza 35000</li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3 class="o">Follow Us</h3>
+                <ul>
+                    <li><a href="https://www.instagram.com/agencerafavoyages">Instagram</a></li>
+                    <li><a href="#">LinkedIn</a></li>
+                    <li><a href="https://www.facebook.com/almassaAgencyTravel">Facebook</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="copyright">
+            <p>&copy; 2025 Rafa Platform. All rights reserved.</p>
+        </div>
+    </footer>
 
-    toggleButton.addEventListener('click', () => {
-      navbarLinks.classList.toggle('active');
-      toggleButton.classList.toggle('active');
-    });
-
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const servicesSidebar = document.getElementById('servicesSidebar');
-    const overlay = document.getElementById('overlay');
-
-    sidebarToggle.addEventListener('click', (e) => {
-      e.stopPropagation();
-      servicesSidebar.classList.toggle('active');
-      overlay.classList.toggle('active');
-    });
-
-    overlay.addEventListener('click', () => {
-      servicesSidebar.classList.remove('active');
-      overlay.classList.remove('active');
-    });
-    
-    document.addEventListener('click', (e) => {
-      if (!servicesSidebar.contains(e.target) && e.target !== sidebarToggle) {
-        servicesSidebar.classList.remove('active');
-        overlay.classList.remove('active');
-      }
-    });
-  </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sidebar toggle functionality
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const servicesSidebar = document.getElementById('servicesSidebar');
+            const overlay = document.getElementById('overlay');
+            const body = document.body;
+            
+            function toggleSidebar() {
+                servicesSidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+                body.classList.toggle('no-scroll');
+            }
+            
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', toggleSidebar);
+            }
+            
+            if (overlay) {
+                overlay.addEventListener('click', toggleSidebar);
+            }
+            
+            // Search form clear functionality
+            const searchForm = document.querySelector('.search-form');
+            if (searchForm) {
+                searchForm.addEventListener('submit', function(e) {
+                    const searchInput = this.querySelector('input[name="search"]');
+                    if (searchInput.value.trim() === '') {
+                        e.preventDefault();
+                        window.location.href = "{{ url_for('visa') }}";
+                    }
+                });
+            }
+            
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth <= 991 && 
+                    servicesSidebar && 
+                    !servicesSidebar.contains(event.target) && 
+                    sidebarToggle && 
+                    !sidebarToggle.contains(event.target) &&
+                    servicesSidebar.classList.contains('active')) {
+                    toggleSidebar();
+                }
+            });
+            
+            // Responsive behavior for sidebar
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 991 && servicesSidebar) {
+                    servicesSidebar.classList.remove('active');
+                    if (overlay) overlay.classList.remove('active');
+                    body.classList.remove('no-scroll');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
