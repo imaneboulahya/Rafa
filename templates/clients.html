@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Clients | Rafa Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/clients.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Services Sidebar -->
+    <div class="services-sidebar" id="servicesSidebar">
+        <h3 style="color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 1rem;">Our Services</h3>
+        <ul class="services-list">
+            <li><a href="{{ url_for('visa') }}">Visa</a></li>
+            <li><a href="{{ url_for('hotel') }}">Hotel</a></li>
+            <li><a href="{{ url_for('billet') }}">Billet</a></li>
+            <li><a href="{{ url_for('hajj') }}">Hajj</a></li>
+            <li><a href="{{ url_for('omra') }}">Omra</a></li>
+            <li><a href="{{ url_for('autocar') }}">Autocar</a></li>
+            <li><a href="{{ url_for('bateau') }}">Bateau</a></li>
+            <li><a href="{{ url_for('traduction') }}">Traduction</a></li>
+            <li><a href="{{ url_for('assurance') }}">Assurance</a></li>
+            <li><a href="{{ url_for('voyages') }}">Voyages organisés</a></li>
+            <li><a href="{{ url_for('transfert') }}">Transfert</a></li>
+            <li><a href="{{ url_for('statistics') }}">Statistics</a></li>
+            <li><a href="{{ url_for('factures') }}">Factures</a></li>
+        </ul>
+    </div>
+    
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Header/Navigation -->
+    <header class="navbar">
+        <a href="{{ url_for('index') }}" class="logo-link">
+            <img src="{{ url_for('static', filename='images/logo.jpeg') }}" alt="Rafa Logo" class="logo-img" width="150" height="50">
+        </a>
+        
+        <button class="toggle-button" aria-label="Toggle navigation">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+        
+        <nav class="navbar-links">
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('create_profile') }}">Create</a></li>
+                <li><a href="{{ url_for('clients') }}">Clients</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><button class="sidebar-toggle" id="sidebarToggle">Services</button></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content">
+        <section class="all-clients">
+            <div class="section-header">
+                <h1>All Clients</h1>
+                <a href="{{ url_for('create_profile') }}" class="add-client-btn">
+                    <i class="fas fa-plus"></i> Add New Client
+                </a>
+            </div>
+            
+            <!-- Filters and Search -->
+            <div class="client-filters">
+                <form method="GET" action="{{ url_for('clients') }}" class="filter-form">
+                    <div class="form-row">
+                        <div class="search-group">
+                            <input type="text" name="search" placeholder="Search clients..." value="{{ search_query }}">
+                            <select name="search_by" class="search-select">
+                                <option value="name" {% if search_by == 'name' %}selected{% endif %}>Name</option>
+                                <option value="passport" {% if search_by == 'passport' %}selected{% endif %}>Passport</option>
+                                <option value="phone" {% if search_by == 'phone' %}selected{% endif %}>Phone</option>
+                                <option value="nationality" {% if search_by == 'nationality' %}selected{% endif %}>Nationality</option>
+                            </select>
+                        </div>
+                        
+                        <div class="service-filter">
+                            <select name="service_type" class="service-select">
+                                <option value="all" {% if service_filter == 'all' %}selected{% endif %}>All Services</option>
+                                {% for value, label in service_types %}
+                                <option value="{{ value }}" {% if service_filter == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="filter-btn">Apply Filters</button>
+                        {% if search_query or service_filter != 'all' %}
+                        <a href="{{ url_for('clients') }}" class="clear-filters">Clear Filters</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Clients Table -->
+            <div class="clients-table-container">
+                <table class="clients-table">
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Contact</th>
+                            <th>Service</th>
+                            <th>Documents</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for client in clients %}
+                        <tr class="client-row {% if client.service_completed %}completed{% endif %}">
+                            <td class="client-info">
+                                <div class="client-avatar">
+                                    {% if client.photo_path %}
+                                    <img src="{{ url_for('static', filename='uploads/' + client.photo_path) }}" alt="{{ client.first_name }} {{ client.last_name }}">
+                                    {% else %}
+                                    <div class="avatar-placeholder">
+                                        {{ client.first_name[0] }}{{ client.last_name[0] }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="client-details">
+                                    <h4>{{ client.first_name }} {{ client.last_name }}</h4>
+                                    <p class="nationality">{{ client.nationality }}</p>
+                                    {% if client.passport %}
+                                    <p class="passport">Passport: {{ client.passport }}</p>
+                                    {% endif %}
+                                    {% if client.cin %}
+                                    <p class="cin">CIN: {{ client.cin }}</p>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="contact-info">
+                                <p><i class="fas fa-phone"></i> {{ client.phone }}</p>
+                                {% if client.email %}
+                                <p><i class="fas fa-envelope"></i> {{ client.email }}</p>
+                                {% endif %}
+                            </td>
+                            <td class="service-info">
+                                {% if client.service_type == 'other' and client.custom_service %}
+                                <p class="service-type">{{ client.custom_service }}</p>
+                                {% else %}
+                                <p class="service-type">{{ client.service_type|capitalize }}</p>
+                                {% endif %}
+                                <p class="created-date">Added: {{ client.created_at.strftime('%d/%m/%Y') }}</p>
+                            </td>
+                            <td class="documents-info">
+                                {% if client.documents_path %}
+                                <a href="{{ url_for('static', filename='uploads/' + client.documents_path) }}" target="_blank" class="doc-link">
+                                    <i class="fas fa-file-alt"></i> View Documents
+                                </a>
+                                {% else %}
+                                <span class="no-docs">No documents</span>
+                                {% endif %}
+                            </td>
+                            <td class="status-info">
+                                <span class="status-badge {% if client.service_completed %}completed{% else %}pending{% endif %}">
+                                    {% if client.service_completed %}Completed{% else %}In Progress{% endif %}
+                                </span>
+                                <div class="payment-status">
+                                    <span class="amount-paid">{{ client.amount_paid }} DH</span> /
+                                    <span class="total-amount">{{ client.total_amount }} DH</span>
+                                </div>
+                            </td>
+                            <td class="actions">
+                                <a href="{{ url_for('update_client', client_id=client.id) }}" class="action-btn edit-btn" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{{ url_for('delete_client', client_id=client.id) }}" class="action-btn delete-btn" title="Delete" onclick="return confirm('Are you sure you want to delete this client?')">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                                <a href="#" class="action-btn more-btn" title="More options">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr class="no-clients">
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <i class="fas fa-users-slash"></i>
+                                    <h3>No clients found</h3>
+                                    <p>Try adjusting your search or add a new client</p>
+                                    <a href="{{ url_for('create_profile') }}" class="cta-button">Add New Client</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="{{ url_for('index') }}">Home</a></li>
+                    <li><a href="{{ url_for('create_profile') }}">Create Profile</a></li>
+                    <li><a href="#services">Services</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <ul>
+                    <li>Email: Rafavoyages@gmail.com</li>
+                    <li>Phone: +212 650-212366</li>
+                    <li>Address: 22 Imm Narjiss 1 Av Allal Ben Abdellah, Taza 35000</li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Follow Us</h3>
+                <ul>
+                    <li><a href="https://www.instagram.com/agencerafavoyages">Instagram</a></li>
+                    <li><a href="#">LinkedIn</a></li>
+                    <li><a href="https://www.facebook.com/almassaAgencyTravel">Facebook</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="copyright">
+            <p>&copy; 2025 Rafa Platform. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sidebar toggle functionality
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const servicesSidebar = document.getElementById('servicesSidebar');
+            const overlay = document.getElementById('overlay');
+            const body = document.body;
+            
+            function toggleSidebar() {
+                servicesSidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+                body.classList.toggle('no-scroll');
+            }
+            
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', toggleSidebar);
+            }
+            
+            if (overlay) {
+                overlay.addEventListener('click', toggleSidebar);
+            }
+            
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth <= 991 && 
+                    servicesSidebar && 
+                    !servicesSidebar.contains(event.target) && 
+                    sidebarToggle && 
+                    !sidebarToggle.contains(event.target) &&
+                    servicesSidebar.classList.contains('active')) {
+                    toggleSidebar();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

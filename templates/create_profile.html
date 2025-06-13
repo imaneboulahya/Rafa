@@ -4,24 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/create.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <title>Rafa | Create</title>
-    <style>
-        #customService {
-            display: none;
-            width: 100%;
-            padding: 0.75rem;
-            margin-top: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        
-        #customService.show {
-            display: block;
-        }
-    </style>
 </head>
 <body>
+    <!-- Services Sidebar -->
+    <div class="services-sidebar" id="servicesSidebar">
+        <h3 style="color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 1rem;">Our Services</h3>
+        <ul class="services-list">
+            <li><a href="{{ url_for('visa') }}">Visa</a></li>
+            <li><a href="{{ url_for('hotel') }}">Hotel</a></li>
+            <li><a href="{{ url_for('billet') }}">Billet</a></li>
+            <li><a href="{{ url_for('hajj') }}">Hajj</a></li>
+            <li><a href="{{ url_for('omra') }}">Omra</a></li>
+            <li><a href="{{ url_for('autocar') }}">Autocar</a></li>
+            <li><a href="{{ url_for('bateau') }}">Bateau</a></li>
+            <li><a href="{{ url_for('traduction') }}">Traduction</a></li>
+            <li><a href="{{ url_for('assurance') }}">Assurance</a></li>
+            <li><a href="{{ url_for('voyages') }}">Voyages organisés</a></li>
+            <li><a href="{{ url_for('transfert') }}">Transfert</a></li>
+            <li><a href="{{ url_for('statistics') }}">Statistics</a></li>
+            <li><a href="{{ url_for('factures') }}">Factures</a></li>
+        </ul>
+    </div>
+    
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
     <!-- Header/Navigation -->
     <header class="navbar">
         <a href="{{ url_for('index') }}" class="logo-link">
@@ -38,11 +47,12 @@
             <ul>
                 <li><a href="{{ url_for('index') }}">Home</a></li>
                 <li><a href="{{ url_for('create_profile') }}">Create</a></li>
+                <li><a href="{{ url_for('clients') }}">Clients</a></li>
                 <li><a href="#contact">Contact</a></li>
+                <li><button class="sidebar-toggle" id="sidebarToggle">Services</button></li>
             </ul>
         </nav>
     </header>
-
     <!-- Profile Creation Section -->
     <main id="main-content" class="profile-creation">
         <h1>Create Profile</h1>
@@ -189,6 +199,41 @@
             <button type="submit" class="submit-btn">Create Profile</button>
         </form>
     </main>
+    <!-- Footer -->
+  <footer id="contact">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3 class="o">Quick Links</h3>
+        <ul>
+          <li><a href="{{ url_for('index') }}">Home</a></li>
+          <li><a href="{{ url_for('create_profile') }}">Create Profile</a></li>
+          <li><a href="#services">Services</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-section">
+        <h3 class="o">Contact Us</h3>
+        <ul>
+          <li>Email: Rafavoyages@gmail.com</li>
+          <li>Phone: +212 650-212366</li>
+          <li>Address: 22 Imm Narjiss 1 Av Allal Ben Abdellah, Taza 35000</li>
+        </ul>
+      </div>
+      
+      <div class="footer-section">
+        <h3 class="o">Follow Us</h3>
+        <ul>
+          <li><a href="https://www.instagram.com/agencerafavoyages">Instagram</a></li>
+          <li><a href="#">LinkedIn</a></li>
+          <li><a href="https://www.facebook.com/almassaAgencyTravel">Facebook</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="copyright">
+      <p>&copy; 2025 Rafa Platform. All rights reserved.</p>
+    </div>
+  </footer>
 
     <!-- JavaScript for Mobile Menu and Form -->
     <script>
@@ -242,6 +287,36 @@
                 customServiceInput.required = true;
             }
         });
+    // JavaScript remains the same as in your original template
+    const toggleButton = document.querySelector('.toggle-button');
+    const navbarLinks = document.querySelector('.navbar-links');
+
+    toggleButton.addEventListener('click', () => {
+      navbarLinks.classList.toggle('active');
+      toggleButton.classList.toggle('active');
+    });
+
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const servicesSidebar = document.getElementById('servicesSidebar');
+    const overlay = document.getElementById('overlay');
+
+    sidebarToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      servicesSidebar.classList.toggle('active');
+      overlay.classList.toggle('active');
+    });
+
+    overlay.addEventListener('click', () => {
+      servicesSidebar.classList.remove('active');
+      overlay.classList.remove('active');
+    });
+    
+    document.addEventListener('click', (e) => {
+      if (!servicesSidebar.contains(e.target) && e.target !== sidebarToggle) {
+        servicesSidebar.classList.remove('active');
+        overlay.classList.remove('active');
+      }
+    });
     </script>
 </body>
 </html>

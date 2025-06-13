@@ -14,20 +14,19 @@
   <div class="services-sidebar" id="servicesSidebar">
     <h3 style="color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 1rem;">Our Services</h3>
     <ul class="services-list">
-      <li><a href="#">Visa</a></li>
-      <li><a href="#">Hotel</a></li>
-      <li><a href="#">Billet</a></li>
-      <li><a href="#">Hajj</a></li>
-      <li><a href="#">Omra</a></li>
-      <li><a href="#">Autocar</a></li>
-      <li><a href="#">Bateau</a></li>
-      <li><a href="#">Traduction</a></li>
-      <li><a href="#">Assurance</a></li>
-      <li><a href="#">Voyages organisés</a></li>
-      <li><a href="#">Transfert</a></li>
-      <li><a href="#">Statistics</a></li>
-      <li><a href="#">Factures</a></li>
-      <li><a href="#">Transfert</a></li>
+      <li><a href="{{ url_for('visa') }}">Visa</a></li>
+      <li><a href="{{ url_for('hotel') }}">Hotel</a></li>
+      <li><a href="{{ url_for('billet') }}">Billet</a></li>
+      <li><a href="{{ url_for('hajj') }}">Hajj</a></li>
+      <li><a href="{{ url_for('omra') }}">Omra</a></li>
+      <li><a href="{{ url_for('autocar') }}">Autocar</a></li>
+      <li><a href="{{ url_for('bateau') }}">Bateau</a></li>
+      <li><a href="{{ url_for('traduction') }}">Traduction</a></li>
+      <li><a href="{{ url_for('assurance') }}">Assurance</a></li>
+      <li><a href="{{ url_for('voyages') }}">Voyages organisés</a></li>
+      <li><a href="{{ url_for('transfert') }}">Transfert</a></li>
+      <li><a href="{{ url_for('statistics') }}">Statistics</a></li>
+      <li><a href="{{ url_for('factures') }}">Factures</a></li>
       <li><a href="#">Autre</a></li>
     </ul>
   </div>
@@ -88,7 +87,7 @@
     </div>
     
     <div class="copyright">
-      <p>&copy; {{ now.year }} Rafa Platform. All rights reserved.</p>
+      <p>&copy; 2025 Rafa Platform. All rights reserved.</p>
     </div>
   </footer>
 
