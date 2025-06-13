@@ -42,6 +42,29 @@
     </style>
 </head>
 <body>
+    <!-- Services Sidebar -->
+    <div class="services-sidebar" id="servicesSidebar">
+        <h3 style="color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 1rem;">Our Services</h3>
+        <ul class="services-list">
+            <li><a href="{{ url_for('visa') }}">Visa</a></li>
+            <li><a href="{{ url_for('hotel') }}">Hotel</a></li>
+            <li><a href="{{ url_for('billet') }}">Billet</a></li>
+            <li><a href="{{ url_for('hajj') }}">Hajj</a></li>
+            <li><a href="{{ url_for('omra') }}">Omra</a></li>
+            <li><a href="{{ url_for('autocar') }}">Autocar</a></li>
+            <li><a href="{{ url_for('bateau') }}">Bateau</a></li>
+            <li><a href="{{ url_for('traduction') }}">Traduction</a></li>
+            <li><a href="{{ url_for('assurance') }}">Assurance</a></li>
+            <li><a href="{{ url_for('voyages') }}">Voyages organisés</a></li>
+            <li><a href="{{ url_for('transfert') }}">Transfert</a></li>
+            <li><a href="{{ url_for('statistics') }}">Statistics</a></li>
+            <li><a href="{{ url_for('factures') }}">Factures</a></li>
+        </ul>
+    </div>
+    
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
     <!-- Header/Navigation -->
     <header class="navbar">
         <a href="{{ url_for('index') }}" class="logo-link">
@@ -60,6 +83,7 @@
                 <li><a href="{{ url_for('create_profile') }}">Create</a></li>
                 <li><a href="{{ url_for('clients') }}">Clients</a></li>
                 <li><a href="#contact">Contact</a></li>
+                <li><button class="sidebar-toggle" id="sidebarToggle">Services</button></li>
             </ul>
         </nav>
     </header>
@@ -156,6 +180,36 @@
 
     <!-- JavaScript -->
     <script>
+        // JavaScript remains the same as in your original template
+    const toggleButton = document.querySelector('.toggle-button');
+    const navbarLinks = document.querySelector('.navbar-links');
+
+    toggleButton.addEventListener('click', () => {
+      navbarLinks.classList.toggle('active');
+      toggleButton.classList.toggle('active');
+    });
+
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const servicesSidebar = document.getElementById('servicesSidebar');
+    const overlay = document.getElementById('overlay');
+
+    sidebarToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      servicesSidebar.classList.toggle('active');
+      overlay.classList.toggle('active');
+    });
+
+    overlay.addEventListener('click', () => {
+      servicesSidebar.classList.remove('active');
+      overlay.classList.remove('active');
+    });
+    
+    document.addEventListener('click', (e) => {
+      if (!servicesSidebar.contains(e.target) && e.target !== sidebarToggle) {
+        servicesSidebar.classList.remove('active');
+        overlay.classList.remove('active');
+      }
+    });
         document.addEventListener('DOMContentLoaded', function() {
             // Mobile menu toggle
             const toggleButton = document.querySelector('.toggle-button');

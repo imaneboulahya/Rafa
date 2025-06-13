@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ client.first_name }} {{ client.last_name }} | Rafa Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/client.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Services Sidebar -->
+    <div class="services-sidebar" id="servicesSidebar">
+        <h3 style="color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 1rem;">Our Services</h3>
+        <ul class="services-list">
+            <li><a href="{{ url_for('visa') }}">Visa</a></li>
+            <li><a href="{{ url_for('hotel') }}">Hotel</a></li>
+            <li><a href="{{ url_for('billet') }}">Billet</a></li>
+            <li><a href="{{ url_for('hajj') }}">Hajj</a></li>
+            <li><a href="{{ url_for('omra') }}">Omra</a></li>
+            <li><a href="{{ url_for('autocar') }}">Autocar</a></li>
+            <li><a href="{{ url_for('bateau') }}">Bateau</a></li>
+            <li><a href="{{ url_for('traduction') }}">Traduction</a></li>
+            <li><a href="{{ url_for('assurance') }}">Assurance</a></li>
+            <li><a href="{{ url_for('voyages') }}">Voyages organisés</a></li>
+            <li><a href="{{ url_for('transfert') }}">Transfert</a></li>
+            <li><a href="{{ url_for('statistics') }}">Statistics</a></li>
+            <li><a href="{{ url_for('factures') }}">Factures</a></li>
+        </ul>
+    </div>
+    
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Header/Navigation -->
+    <header class="navbar">
+        <a href="{{ url_for('index') }}" class="logo-link">
+            <img src="{{ url_for('static', filename='images/logo.jpeg') }}" alt="Rafa Logo" class="logo-img" width="150" height="50">
+        </a>
+        
+        <button class="toggle-button" aria-label="Toggle navigation">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+        
+        <nav class="navbar-links">
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('create_profile') }}">Create</a></li>
+                <li><a href="{{ url_for('clients') }}">Clients</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><button class="sidebar-toggle" id="sidebarToggle">Services</button></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content">
+        <section class="client-detail">
+            <div class="back-link">
+                <a href="{{ url_for('clients') }}" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Clients
+                </a>
+            </div>
+            
+            <div class="client-header">
+                <div class="client-avatar">
+                    {% if client.photo_path %}
+                    <img src="{{ url_for('static', filename='uploads/' + client.photo_path) }}" alt="{{ client.first_name }} {{ client.last_name }}">
+                    {% else %}
+                    <div class="avatar-placeholder">
+                        {{ client.first_name[0] }}{{ client.last_name[0] }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="client-name">
+                    <h1>{{ client.first_name }} {{ client.last_name }}</h1>
+                    <div class="client-status {% if client.service_completed %}completed{% else %}pending{% endif %}">
+                        {% if client.service_completed %}
+                        <i class="fas fa-check-circle"></i> Service Completed
+                        {% else %}
+                        <i class="fas fa-clock"></i> Service In Progress
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="client-actions">
+                    <a href="{{ url_for('update_client', client_id=client.id) }}" class="edit-btn">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <a href="{{ url_for('delete_client', client_id=client.id) }}" class="delete-btn" onclick="return confirm('Are you sure you want to delete this client?')">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </a>
+                </div>
+            </div>
+            
+            <div class="client-content">
+                <div class="client-info-section">
+                    <div class="info-card">
+                        <h2><i class="fas fa-id-card"></i> Personal Information</h2>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">First Name:</span>
+                                <span class="info-value">{{ client.first_name }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Last Name:</span>
+                                <span class="info-value">{{ client.last_name }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Nationality:</span>
+                                <span class="info-value">{{ client.nationality }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Passport:</span>
+                                <span class="info-value">{{ client.passport if client.passport else 'Not provided' }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">CIN:</span>
+                                <span class="info-value">{{ client.cin if client.cin else 'Not provided' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <h2><i class="fas fa-phone-alt"></i> Contact Information</h2>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Phone:</span>
+                                <span class="info-value">{{ client.phone }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Email:</span>
+                                <span class="info-value">{{ client.email if client.email else 'Not provided' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="client-service-section">
+                    <div class="service-card">
+                        <h2><i class="fas fa-concierge-bell"></i> Service Details</h2>
+                        <div class="service-info">
+                            <div class="service-type">
+                                <span class="info-label">Service Type:</span>
+                                <span class="info-value">
+                                    {% if client.service_type == 'other' and client.custom_service %}
+                                        {{ client.custom_service }}
+                                    {% else %}
+                                        {{ client.service_type|capitalize }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="service-date">
+                                <span class="info-label">Created:</span>
+                                <span class="info-value">{{ client.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="payment-info">
+                            <h3><i class="fas fa-money-bill-wave"></i> Payment Information</h3>
+                            <div class="payment-grid">
+                                <div class="payment-item">
+                                    <span class="payment-label">Amount Paid:</span>
+                                    <span class="payment-value">{{ "%.2f"|format(client.amount_paid) }} DH</span>
+                                </div>
+                                <div class="payment-item">
+                                    <span class="payment-label">Total Amount:</span>
+                                    <span class="payment-value">{{ "%.2f"|format(client.total_amount) }} DH</span>
+                                </div>
+                                <div class="payment-item">
+                                    <span class="payment-label">Amount Due:</span>
+                                    <span class="payment-value">{{ "%.2f"|format(client.total_amount - client.amount_paid) }} DH</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="documents-card">
+                        <h2><i class="fas fa-file-alt"></i> Documents</h2>
+                        {% if client.documents_path %}
+                        <div class="document-preview">
+                            <iframe src="{{ url_for('static', filename='uploads/' + client.documents_path) }}" frameborder="0"></iframe>
+                            <a href="{{ url_for('static', filename='uploads/' + client.documents_path) }}" download class="download-btn">
+                                <i class="fas fa-download"></i> Download Documents
+                            </a>
+                        </div>
+                        {% else %}
+                        <div class="no-documents">
+                            <i class="fas fa-folder-open"></i>
+                            <p>No documents uploaded for this client</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="{{ url_for('index') }}">Home</a></li>
+                    <li><a href="{{ url_for('create_profile') }}">Create Profile</a></li>
+                    <li><a href="#services">Services</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <ul>
+                    <li>Email: Rafavoyages@gmail.com</li>
+                    <li>Phone: +212 650-212366</li>
+                    <li>Address: 22 Imm Narjiss 1 Av Allal Ben Abdellah, Taza 35000</li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Follow Us</h3>
+                <ul>
+                    <li><a href="https://www.instagram.com/agencerafavoyages">Instagram</a></li>
+                    <li><a href="#">LinkedIn</a></li>
+                    <li><a href="https://www.facebook.com/almassaAgencyTravel">Facebook</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="copyright">
+            <p>&copy; 2025 Rafa Platform. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sidebar toggle functionality
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const servicesSidebar = document.getElementById('servicesSidebar');
+            const overlay = document.getElementById('overlay');
+            const body = document.body;
+            
+            function toggleSidebar() {
+                servicesSidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+                body.classList.toggle('no-scroll');
+            }
+            
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', toggleSidebar);
+            }
+            
+            if (overlay) {
+                overlay.addEventListener('click', toggleSidebar);
+            }
+            
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth <= 991 && 
+                    servicesSidebar && 
+                    !servicesSidebar.contains(event.target) && 
+                    sidebarToggle && 
+                    !sidebarToggle.contains(event.target) &&
+                    servicesSidebar.classList.contains('active')) {
+                    toggleSidebar();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

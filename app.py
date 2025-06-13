@@ -160,6 +160,11 @@ def clients():
         service_types=service_types
     )
 
+@app.route('/client/<int:client_id>')
+def client_detail(client_id):
+    client = Profile.query.get_or_404(client_id)
+    return render_template('client.html', client=client)
+
 @app.route('/update_client/<int:client_id>', methods=['POST'])
 def update_client(client_id):
     client = Profile.query.get_or_404(client_id)
