@@ -1,2 +1,20 @@
-# Rafa
-management app: Experience world-class travel services, personalized solutions, and exclusive benefits tailored to your needs. From business travel to spiritual journeys, we handle every detail with care.
+# ✈️ Rafa Travel Web Application
+
+<div align="center">
+  <img src="static/images/logo.jpeg" alt="Rafa Logo" width="200"/>
+  
+  *Luxury Travel Management System*
+</div>
+
+## 🌟 Technical Overview
+
+| Component       | Technologies                          |
+|-----------------|---------------------------------------|
+| **Frontend**    | Html, css , js                         |
+| **Backend**     | Python, Flask, SQLite              |
+
+## 🚀 Quick Start
+
+```bash
+# Clone repository
+git clone https://github.com/your-org/rafa-app.git
