@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, FileField, validators
+from wtforms import StringField, SelectField, FileField, DateField, validators
 from werkzeug.utils import secure_filename
 import os
 from datetime import datetime
@@ -14,9 +14,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
 db = SQLAlchemy(app)
-migrate = Migrate(app, db)  # Initialize Flask-Migrate
+migrate = Migrate(app, db)
 
-# Models (unchanged)
+# Models
 class Profile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(50), nullable=False)
@@ -30,6 +30,11 @@ class Profile(db.Model):
     nationality = db.Column(db.String(50), nullable=False)
     passport = db.Column(db.String(50))
     cin = db.Column(db.String(50))
+    transport_type = db.Column(db.String(20))  # 'plane' or 'bateau'
+    transport_name = db.Column(db.String(100))  # Name of airline or boat
+    departure_location = db.Column(db.String(100))
+    arrival_location = db.Column(db.String(100))
+    travel_date = db.Column(db.Date)
     service_type = db.Column(db.String(50), nullable=False)
     custom_service = db.Column(db.String(100))
     photo_path = db.Column(db.String(200))
@@ -40,7 +45,6 @@ class Profile(db.Model):
     total_amount = db.Column(db.Float, default=0.0)
     service_completed = db.Column(db.Boolean, default=False)
     
-    # Relationship to hotel bookings (one-to-many)
     hotel_bookings = db.relationship('HotelBooking', backref='profile', lazy=True)
 
 class HotelBooking(db.Model):
@@ -53,7 +57,6 @@ class HotelBooking(db.Model):
     room_type = db.Column(db.String(50))
     booking_reference = db.Column(db.String(50))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
 
 class GroupProfile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -69,7 +72,7 @@ class GroupMember(db.Model):
     phone = db.Column(db.String(20), nullable=False)
     passport = db.Column(db.String(50))
 
-# Forms (unchanged)
+# Forms
 class ProfileForm(FlaskForm):
     first_name = StringField('First Name', validators=[validators.InputRequired()])
     last_name = StringField('Last Name', validators=[validators.InputRequired()])
@@ -89,6 +92,30 @@ class ProfileForm(FlaskForm):
     custom_service = StringField('Custom Service')
     photo = FileField('Profile Photo')
     documents = FileField('Documents')
+    transport_type = SelectField('Transport Type', choices=[
+        ('plane', 'Plane'),
+        ('bateau', 'Bateau')
+    ])
+    transport_name = StringField('Transport Name (Airline/Boat)')
+    departure_location = StringField('Departure From')
+    arrival_location = StringField('Arrival To')
+    travel_date = DateField('Travel Date', format='%Y-%m-%d')
+    transport_type = SelectField('Transport Type', choices=[
+        ('plane', 'Plane'),
+        ('bateau', 'Bateau')
+    ], validators=[validators.Optional()])  # Changed to Optional
+    
+    transport_name = StringField('Transport Name (Airline/Boat)', 
+                               validators=[validators.Optional()])
+    
+    departure_location = StringField('Departure From', 
+                                   validators=[validators.Optional()])
+    
+    arrival_location = StringField('Arrival To', 
+                                 validators=[validators.Optional()])
+    
+    travel_date = DateField('Travel Date', format='%Y-%m-%d',
+                          validators=[validators.Optional()])
 
 class GroupForm(FlaskForm):
     group_name = StringField('Group/Organization Name', validators=[validators.InputRequired()])
@@ -103,18 +130,14 @@ def index():
 def visa():
     search_query = request.args.get('search', '').strip()
     search_by = request.args.get('search_by', 'name')
-    
-    # Start with base query for visa clients
     query = Profile.query.filter_by(service_type='visa')
     
     if search_query:
         if search_by == 'name':
-            query = query.filter(
-                db.or_(
-                    Profile.first_name.ilike(f'%{search_query}%'),
-                    Profile.last_name.ilike(f'%{search_query}%')
-                )
-            )
+            query = query.filter(db.or_(
+                Profile.first_name.ilike(f'%{search_query}%'),
+                Profile.last_name.ilike(f'%{search_query}%')
+            ))
         elif search_by == 'passport':
             query = query.filter(Profile.passport.ilike(f'%{search_query}%'))
         elif search_by == 'phone':
@@ -123,13 +146,70 @@ def visa():
             query = query.filter(Profile.nationality.ilike(f'%{search_query}%'))
     
     visa_clients = query.order_by(Profile.service_completed, Profile.created_at.desc()).all()
+    return render_template('visa.html', clients=visa_clients, search_query=search_query, search_by=search_by)
+
+@app.route('/billet')
+def billet():
+    search_query = request.args.get('search', '').strip()
+    search_by = request.args.get('search_by', 'name')
     
-    return render_template(
-        'visa.html',
-        clients=visa_clients,
-        search_query=search_query,
-        search_by=search_by
-    )
+    query = Profile.query.filter_by(service_type='billet')
+    
+    if search_query:
+        if search_by == 'name':
+            query = query.filter(db.or_(
+                Profile.first_name.ilike(f'%{search_query}%'),
+                Profile.last_name.ilike(f'%{search_query}%')
+            ))
+        elif search_by == 'passport':
+            query = query.filter(Profile.passport.ilike(f'%{search_query}%'))
+        elif search_by == 'phone':
+            query = query.filter(Profile.phone.ilike(f'%{search_query}%'))
+        elif search_by == 'transport':
+            query = query.filter(db.or_(
+                Profile.transport_name.ilike(f'%{search_query}%'),
+                Profile.departure_location.ilike(f'%{search_query}%'),
+                Profile.arrival_location.ilike(f'%{search_query}%')
+            ))
+    
+    billet_clients = query.order_by(Profile.service_completed, Profile.travel_date).all()
+    return render_template('billet.html', clients=billet_clients, search_query=search_query, search_by=search_by)
+
+@app.route('/update_billet_client/<int:client_id>', methods=['POST'])
+def update_billet_client(client_id):
+    client = Profile.query.get_or_404(client_id)
+    
+    try:
+        client.amount_paid = float(request.form.get('amount_paid', 0))
+        client.total_amount = float(request.form.get('total_amount', 0))
+        client.transport_type = request.form.get('transport_type')
+        client.transport_name = request.form.get('transport_name')
+        client.departure_location = request.form.get('departure_location')
+        client.arrival_location = request.form.get('arrival_location')
+        client.travel_date = datetime.strptime(request.form['travel_date'], '%Y-%m-%d')
+        client.service_completed = 'service_completed' in request.form
+        
+        db.session.commit()
+        flash('Billet client updated successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating billet client: {str(e)}', 'danger')
+    
+    return redirect(url_for('billet'))
+
+@app.route('/delete_billet_client/<int:client_id>')
+def delete_billet_client(client_id):
+    client = Profile.query.get_or_404(client_id)
+    
+    try:
+        db.session.delete(client)
+        db.session.commit()
+        flash('Billet client deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting billet client: {str(e)}', 'danger')
+    
+    return redirect(url_for('billet'))
 
 @app.route('/clients')
 def clients():
@@ -350,10 +430,6 @@ def delete_hotel_client(client_id):
     
     return redirect(url_for('hotel'))
 
-@app.route('/billet')
-def billet():
-    return render_template('billet.html')
-
 @app.route('/hajj')
 def hajj():
     return render_template('hajj.html')
@@ -398,6 +474,9 @@ def factures():
 def create_profile():
     form = ProfileForm()
     if form.validate_on_submit():
+        print("Form validated successfully")  # Debug
+        print(f"Service type: {form.service_type.data}")  # Debug
+        
         photo_filename = save_file(form.photo.data) if form.photo.data else None
         documents_filename = save_file(form.documents.data) if form.documents.data else None
         
@@ -413,15 +492,27 @@ def create_profile():
             custom_service=form.custom_service.data if form.service_type.data == 'other' else None,
             photo_path=photo_filename,
             documents_path=documents_filename,
-            amount_paid=0.0,  # Initialize payment fields
+            amount_paid=0.0,
             total_amount=0.0,
-            service_completed=False
+            service_completed=False,
+            # Add transport fields
+            transport_type=form.transport_type.data if form.service_type.data == 'billet' else None,
+            transport_name=form.transport_name.data if form.service_type.data == 'billet' else None,
+            departure_location=form.departure_location.data if form.service_type.data == 'billet' else None,
+            arrival_location=form.arrival_location.data if form.service_type.data == 'billet' else None,
+            travel_date=form.travel_date.data if form.service_type.data == 'billet' else None
         )
         
         db.session.add(profile)
-        db.session.commit()
-        flash('Profile created successfully!', 'success')
-        return redirect(url_for('index'))
+        try:
+            db.session.commit()
+            print("Profile saved to database")  # Debug
+            flash('Profile created successfully!', 'success')
+            return redirect(url_for('index'))
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error saving to database: {str(e)}")  # Debug
+            flash(f'Error creating profile: {str(e)}', 'danger')
     
     return render_template('create_profile.html', form=form)
 

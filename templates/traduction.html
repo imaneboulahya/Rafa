@@ -11,51 +11,51 @@
 </head>
 <body>
   <!-- Services Sidebar -->
-  <div class="services-sidebar" id="servicesSidebar">
-    <h3 style="color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 1rem;">Our Services</h3>
-    <ul class="services-list">
-      <li><a href="{{ url_for('visa') }}">Visa</a></li>
-      <li><a href="{{ url_for('hotel') }}">Hotel</a></li>
-      <li><a href="{{ url_for('billet') }}">Billet</a></li>
-      <li><a href="{{ url_for('hajj') }}">Hajj</a></li>
-      <li><a href="{{ url_for('omra') }}">Omra</a></li>
-      <li><a href="{{ url_for('autocar') }}">Autocar</a></li>
-      <li><a href="{{ url_for('autocar') }}">Bateau</a></li>
-      <li><a href="{{ url_for('traduction') }}">Traduction</a></li>
-      <li><a href="{{ url_for('assurance') }}">Assurance</a></li>
-      <li><a href="{{ url_for('voyages') }}">Voyages organisés</a></li>
-      <li><a href="{{ url_for('transfert') }}">Transfert</a></li>
-      <li><a href="{{ url_for('statistics') }}">Statistics</a></li>
-      <li><a href="{{ url_for('factures') }}">Factures</a></li>
-      <li><a href="{{ url_for('transfert') }}">Transfert</a></li>
-      <li><a href="#">Autre</a></li>
-    </ul>
-  </div>
-  
-  <!-- Overlay -->
-  <div class="overlay" id="overlay"></div>
+    <div class="services-sidebar" id="servicesSidebar">
+        <h3 style="color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 1rem;">Our Services</h3>
+        <ul class="services-list">
+            <li><a href="{{ url_for('visa') }}">Visa</a></li>
+            <li><a href="{{ url_for('hotel') }}">Hotel</a></li>
+            <li><a href="{{ url_for('billet') }}">Billet</a></li>
+            <li><a href="{{ url_for('hajj') }}">Hajj</a></li>
+            <li><a href="{{ url_for('omra') }}">Omra</a></li>
+            <li><a href="{{ url_for('autocar') }}">Autocar</a></li>
+            <li><a href="{{ url_for('bateau') }}">Bateau</a></li>
+            <li><a href="{{ url_for('traduction') }}">Traduction</a></li>
+            <li><a href="{{ url_for('assurance') }}">Assurance</a></li>
+            <li><a href="{{ url_for('voyages') }}">Voyages organisés</a></li>
+            <li><a href="{{ url_for('transfert') }}">Transfert</a></li>
+            <li><a href="{{ url_for('statistics') }}">Statistics</a></li>
+            <li><a href="{{ url_for('factures') }}">Factures</a></li>
+            <li><a href="#">Autre</a></li>
+        </ul>
+    </div>
+    
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
 
-  <!-- Header/Navigation -->
-  <header class="navbar">
-    <a href="{{ url_for('index') }}" class="logo-link">
-      <img src="{{ url_for('static', filename='images/logo.jpeg') }}" alt="Rafa Logo" class="logo-img" width="150" height="50">
-    </a>
-    
-    <button class="toggle-button" aria-label="Toggle navigation">
-      <span class="bar"></span>
-      <span class="bar"></span>
-      <span class="bar"></span>
-    </button>
-    
-    <nav class="navbar-links">
-      <ul>
-        <li><a href="{{ url_for('index') }}">Home</a></li>
-        <li><a href="{{ url_for('create_profile') }}">Create</a></li>
-        <li><a href="#contact">Contact</a></li>
-        <li><button class="sidebar-toggle" id="sidebarToggle">Services</button></li>
-      </ul>
-    </nav>
-  </header>
+    <!-- Header/Navigation -->
+    <header class="navbar">
+        <a href="{{ url_for('index') }}" class="logo-link">
+            <img src="{{ url_for('static', filename='images/logo.jpeg') }}" alt="Rafa Logo" class="logo-img" width="150" height="50">
+        </a>
+        
+        <button class="toggle-button" aria-label="Toggle navigation">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+        
+        <nav class="navbar-links">
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('create_profile') }}">Create</a></li>
+                <li><a href="{{ url_for('clients') }}">Clients</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><button class="sidebar-toggle" id="sidebarToggle">Services</button></li>
+            </ul>
+        </nav>
+    </header>
   <!-- Main Content -->
   <main id="main-content">
     <!-- Hero Section -->
