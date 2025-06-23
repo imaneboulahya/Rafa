@@ -94,6 +94,7 @@ class ProfileForm(FlaskForm):
         ('omra', 'Omra'),
         ('autocar', 'Autocar'),
         ('bateau', 'Bateau'),
+        ('traduction', 'Traduction'),
         ('other', 'Other (Please specify)')
     ], validators=[InputRequired()])
     custom_service = StringField('Custom Service')
@@ -603,7 +604,80 @@ def delete_bateau_client(client_id):
 
 @app.route('/traduction')
 def traduction():
-    return render_template('traduction.html')
+    search_query = request.args.get('search', '').strip()
+    search_by = request.args.get('search_by', 'name')
+    
+    # Base query for traduction clients
+    query = Profile.query.filter_by(service_type='traduction')
+    
+    # Apply search filters
+    if search_query:
+        if search_by == 'name':
+            query = query.filter(db.or_(
+                Profile.first_name.ilike(f'%{search_query}%'),
+                Profile.last_name.ilike(f'%{search_query}%')
+            ))
+        elif search_by == 'phone':
+            query = query.filter(Profile.phone.ilike(f'%{search_query}%'))
+        elif search_by == 'language':
+            query = query.filter(db.or_(
+                Profile.translation_language_from.ilike(f'%{search_query}%'),
+                Profile.translation_language_to.ilike(f'%{search_query}%')
+            ))
+    
+    # Get clients ordered by completion status and date
+    clients = query.order_by(Profile.service_completed, Profile.created_at.desc()).all()
+    
+    return render_template('traduction.html', 
+                         clients=clients,
+                         search_query=search_query,
+                         search_by=search_by)
+
+@app.route('/update_traduction_client/<int:client_id>', methods=['POST'])
+def update_traduction_client(client_id):
+    client = Profile.query.get_or_404(client_id)
+    
+    try:
+        # Update completion status
+        client.service_completed = 'service_completed' in request.form
+        
+        # Handle document upload if provided
+        if 'translation_docs' in request.files:
+            file = request.files['translation_docs']
+            if file.filename != '':
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+                client.translation_docs_path = filename
+        
+        db.session.commit()
+        flash('Client updated successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating client: {str(e)}', 'danger')
+    
+    return redirect(url_for('traduction'))
+
+@app.route('/delete_traduction_client/<int:client_id>')
+def delete_traduction_client(client_id):
+    client = Profile.query.get_or_404(client_id)
+    
+    try:
+        # Delete associated documents if they exist
+        if client.translation_docs_path:
+            try:
+                os.remove(os.path.join(app.config['UPLOAD_FOLDER'], client.translation_docs_path))
+            except:
+                pass
+        
+        db.session.delete(client)
+        db.session.commit()
+        flash('Client deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting client: {str(e)}', 'danger')
+    
+    return redirect(url_for('traduction'))
 
 @app.route('/assurance')
 def assurance():

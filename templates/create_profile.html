@@ -238,6 +238,17 @@
                     {{ form.cabin_number() }}
                 </div>
             </div>
+            <!-- Traduction Fields -->
+            <div id="traduction-fields" class="service-specific-fields" style="display: none;">
+                <h3>Traduction Details</h3>
+                <div class="form-group">
+                    <label>Documents to Translate</label>
+                    <div class="photo-upload">
+                        <input type="file" name="documents" accept=".pdf,.doc,.docx,.jpg,.png">
+                        <p>Click to upload documents</p>
+                    </div>
+                </div>
+            </div>
             
             <div class="form-group">
                 <label>Profile Photo</label>
@@ -375,6 +386,9 @@
                         customServiceInput.style.display = 'block';
                         customServiceInput.required = true;
                         break;
+                    case 'traduction':
+                        document.getElementById('traduction-fields').style.display = 'block';
+                    break;
                 }
             }
 

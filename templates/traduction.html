@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rafa Platform - Premium Travel Services</title>
+  <title>Traduction Clients | Rafa Platform</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/traduction.css') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -58,8 +59,68 @@
     </header>
   <!-- Main Content -->
   <main id="main-content">
-    <!-- Hero Section -->
-    <section class="hero">
+    <section class="client-management">
+      <h1>Traduction Clients</h1>
+      <div class="search-container">
+        <form method="GET" action="{{ url_for('traduction') }}" class="search-form">
+          <div class="search-input-group">
+            <input type="text" name="search" placeholder="Search clients..." value="{{ search_query if search_query }}">
+            <select name="search_by" class="search-select">
+              <option value="name" {% if search_by == 'name' %}selected{% endif %}>Name</option>
+              <option value="passport" {% if search_by == 'passport' %}selected{% endif %}>Passport</option>
+              <option value="phone" {% if search_by == 'phone' %}selected{% endif %}>Phone</option>
+            </select>
+            <button type="submit" class="search-btn">Search</button>
+            {% if search_query %}
+            <a href="{{ url_for('traduction') }}" class="clear-search">Clear</a>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+      
+      <div class="client-list">
+        {% for client in clients %}
+        <div class="client-card {% if client.service_completed %}completed{% endif %}">
+          <div class="client-info">
+            <h3>{{ client.first_name }} {{ client.last_name }}</h3>
+            <div class="traduction-details">
+              <p><strong>Phone:</strong> {{ client.phone }}</p>
+              <p><strong>Documents:</strong> 
+                {% if client.documents_path %}
+                  <a href="{{ url_for('static', filename='uploads/' + client.documents_path) }}" target="_blank">View Documents</a>
+                {% else %}
+                  No documents uploaded
+                {% endif %}
+              </p>
+              <p><strong>Request Date:</strong> {{ client.created_at.strftime('%Y-%m-%d') }}</p>
+              <p><strong>Status:</strong> 
+                <span class="traduction-status {% if client.service_completed %}status-completed{% else %}status-pending{% endif %}">
+                  {% if client.service_completed %}Completed{% else %}In Progress{% endif %}
+                </span>
+              </p>
+            </div>
+          </div>
+          
+          <div class="client-actions">
+            <form method="POST" action="{{ url_for('update_traduction_client', client_id=client.id) }}">
+              <div class="form-group checkbox">
+                <label>
+                  <input type="checkbox" name="service_completed" {% if client.service_completed %}checked{% endif %}>
+                  Mark as Completed
+                </label>
+              </div>
+              <button type="submit" class="confirm-btn">Update</button>
+              <a href="{{ url_for('delete_traduction_client', client_id=client.id) }}" class="delete-btn" onclick="return confirm('Delete this traduction client?')">×</a>
+            </form>
+          </div>
+        </div>
+        {% else %}
+        <div class="no-clients">
+          <p>No traduction clients found.</p>
+          <a href="{{ url_for('create_profile') }}" class="cta-button">Create New Traduction Client</a>
+        </div>
+        {% endfor %}
+      </div>
     </section>
   </main>
   <!-- Footer -->
