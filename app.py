@@ -2,10 +2,11 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, FileField, DateField, validators
+from wtforms import StringField, SelectField, FileField, DateField, FloatField, validators
 from werkzeug.utils import secure_filename
 import os
 from datetime import datetime
+from wtforms.validators import InputRequired, Optional
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
@@ -23,18 +24,9 @@ class Profile(db.Model):
     last_name = db.Column(db.String(50), nullable=False)
     phone = db.Column(db.String(20), nullable=False)
     email = db.Column(db.String(100))
-    hotel_name = db.Column(db.String(100))
-    check_in_date = db.Column(db.Date)
-    check_out_date = db.Column(db.Date)
-    hotel_notes = db.Column(db.Text)
     nationality = db.Column(db.String(50), nullable=False)
     passport = db.Column(db.String(50))
     cin = db.Column(db.String(50))
-    transport_type = db.Column(db.String(20))  # 'plane' or 'bateau'
-    transport_name = db.Column(db.String(100))  # Name of airline or boat
-    departure_location = db.Column(db.String(100))
-    arrival_location = db.Column(db.String(100))
-    travel_date = db.Column(db.Date)
     service_type = db.Column(db.String(50), nullable=False)
     custom_service = db.Column(db.String(100))
     photo_path = db.Column(db.String(200))
@@ -45,7 +37,20 @@ class Profile(db.Model):
     total_amount = db.Column(db.Float, default=0.0)
     service_completed = db.Column(db.Boolean, default=False)
     
-    hotel_bookings = db.relationship('HotelBooking', backref='profile', lazy=True)
+    # Autocar specific fields
+    autocar_type = db.Column(db.String(50))
+    seat_number = db.Column(db.String(20))
+    departure_location = db.Column(db.String(100))
+    arrival_location = db.Column(db.String(100))
+    departure_date = db.Column(db.Date)
+    arrival_date = db.Column(db.Date)
+    bateau_type = db.Column(db.String(50))  # ferry, cruise, etc.
+    bateau_company = db.Column(db.String(100))
+    departure_port = db.Column(db.String(100))
+    arrival_port = db.Column(db.String(100))
+    departure_date_bateau = db.Column(db.Date)
+    arrival_date_bateau = db.Column(db.Date)
+    cabin_number = db.Column(db.String(20))
 
 class HotelBooking(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -74,11 +79,11 @@ class GroupMember(db.Model):
 
 # Forms
 class ProfileForm(FlaskForm):
-    first_name = StringField('First Name', validators=[validators.InputRequired()])
-    last_name = StringField('Last Name', validators=[validators.InputRequired()])
-    phone = StringField('Phone', validators=[validators.InputRequired()])
+    first_name = StringField('First Name', validators=[InputRequired()])
+    last_name = StringField('Last Name', validators=[InputRequired()])
+    phone = StringField('Phone', validators=[InputRequired()])
     email = StringField('Email')
-    nationality = StringField('Nationality', validators=[validators.InputRequired()])
+    nationality = StringField('Nationality', validators=[InputRequired()])
     passport = StringField('Passport Number')
     cin = StringField('CIN')
     service_type = SelectField('Service Type', choices=[
@@ -87,39 +92,76 @@ class ProfileForm(FlaskForm):
         ('billet', 'Billet'),
         ('hajj', 'Hajj'),
         ('omra', 'Omra'),
+        ('autocar', 'Autocar'),
+        ('bateau', 'Bateau'),
         ('other', 'Other (Please specify)')
-    ], validators=[validators.InputRequired()])
+    ], validators=[InputRequired()])
     custom_service = StringField('Custom Service')
     photo = FileField('Profile Photo')
     documents = FileField('Documents')
-    transport_type = SelectField('Transport Type', choices=[
-        ('plane', 'Plane'),
-        ('bateau', 'Bateau')
-    ])
-    transport_name = StringField('Transport Name (Airline/Boat)')
-    departure_location = StringField('Departure From')
-    arrival_location = StringField('Arrival To')
-    travel_date = DateField('Travel Date', format='%Y-%m-%d')
-    transport_type = SelectField('Transport Type', choices=[
-        ('plane', 'Plane'),
-        ('bateau', 'Bateau')
-    ], validators=[validators.Optional()])  # Changed to Optional
     
-    transport_name = StringField('Transport Name (Airline/Boat)', 
-                               validators=[validators.Optional()])
+    # Autocar specific fields (will be conditionally shown)
+    autocar_type = SelectField('Autocar Type', choices=[
+        ('', 'Select Type'),
+        ('luxury', 'Luxury'),
+        ('standard', 'Standard'),
+        ('vip', 'VIP')
+    ], validators=[Optional()])
+    seat_number = StringField('Seat Number', validators=[Optional()])
+    departure_location = StringField('Departure Location', validators=[Optional()])
+    arrival_location = StringField('Destination', validators=[Optional()])
+    departure_date = DateField('Departure Date', format='%Y-%m-%d', validators=[Optional()])
+    arrival_date = DateField('Return Date', format='%Y-%m-%d', validators=[Optional()])
     
-    departure_location = StringField('Departure From', 
-                                   validators=[validators.Optional()])
-    
-    arrival_location = StringField('Arrival To', 
-                                 validators=[validators.Optional()])
-    
-    travel_date = DateField('Travel Date', format='%Y-%m-%d',
-                          validators=[validators.Optional()])
+    # Payment fields
+    total_amount = FloatField('Total Price (DH)', validators=[Optional()])
+    amount_paid = FloatField('Amount Paid (DH)', default=0, validators=[Optional()])
+    bateau_type = SelectField('Bateau Type', choices=[
+        ('', 'Select Type'),
+        ('ferry', 'Ferry'),
+        ('cruise', 'Cruise'),
+        ('speedboat', 'Speedboat')
+    ], validators=[Optional()])
+    bateau_company = StringField('Shipping Company', validators=[Optional()])
+    departure_port = StringField('Departure Port', validators=[Optional()])
+    arrival_port = StringField('Arrival Port', validators=[Optional()])
+    departure_date_bateau = DateField('Departure Date', format='%Y-%m-%d', validators=[Optional()])
+    arrival_date_bateau = DateField('Arrival Date', format='%Y-%m-%d', validators=[Optional()])
+    cabin_number = StringField('Cabin/Seat Number', validators=[Optional()])
+
 
 class GroupForm(FlaskForm):
     group_name = StringField('Group/Organization Name', validators=[validators.InputRequired()])
     group_documents = FileField('Group Documents')
+
+class AutocarForm(FlaskForm):
+    first_name = StringField('First Name', validators=[InputRequired()])
+    last_name = StringField('Last Name', validators=[InputRequired()])
+    phone = StringField('Phone', validators=[InputRequired()])
+    email = StringField('Email')
+    nationality = StringField('Nationality', validators=[InputRequired()])
+    passport = StringField('Passport Number')
+    cin = StringField('CIN')
+    
+    # Autocar specific fields
+    departure_location = StringField('Departure Location', validators=[InputRequired()])
+    arrival_location = StringField('Destination', validators=[InputRequired()])
+    departure_date = DateField('Departure Date', format='%Y-%m-%d', validators=[InputRequired()])
+    arrival_date = DateField('Return Date', format='%Y-%m-%d', validators=[Optional()])
+    autocar_type = SelectField('Autocar Type', choices=[
+        ('luxury', 'Luxury'),
+        ('standard', 'Standard'),
+        ('vip', 'VIP')
+    ], validators=[InputRequired()])
+    seat_number = StringField('Seat Number')
+    
+    # Payment fields
+    total_amount = FloatField('Total Price (DH)', validators=[InputRequired()])
+    amount_paid = FloatField('Amount Paid (DH)', default=0)
+    
+    # Documents
+    photo = FileField('Profile Photo')
+    documents = FileField('Documents')
 
 # Routes
 @app.route('/')
@@ -172,7 +214,7 @@ def billet():
                 Profile.arrival_location.ilike(f'%{search_query}%')
             ))
     
-    billet_clients = query.order_by(Profile.service_completed, Profile.travel_date).all()
+    billet_clients = query.order_by(Profile.service_completed, Profile.arrival_date).all()
     return render_template('billet.html', clients=billet_clients, search_query=search_query, search_by=search_by)
 
 @app.route('/update_billet_client/<int:client_id>', methods=['POST'])
@@ -440,11 +482,124 @@ def omra():
 
 @app.route('/autocar')
 def autocar():
-    return render_template('autocar.html')
+    search_query = request.args.get('search', '').strip()
+    search_by = request.args.get('search_by', 'name')
+    
+    query = Profile.query.filter_by(service_type='autocar')
+    
+    if search_query:
+        if search_by == 'name':
+            query = query.filter(db.or_(
+                Profile.first_name.ilike(f'%{search_query}%'),
+                Profile.last_name.ilike(f'%{search_query}%')
+            ))
+        elif search_by == 'phone':
+            query = query.filter(Profile.phone.ilike(f'%{search_query}%'))
+        elif search_by == 'departure':
+            query = query.filter(Profile.departure_location.ilike(f'%{search_query}%'))
+        elif search_by == 'destination':
+            query = query.filter(Profile.arrival_location.ilike(f'%{search_query}%'))
+    
+    clients = query.order_by(Profile.departure_date, Profile.service_completed).all()
+    return render_template('autocar.html', clients=clients, search_query=search_query, search_by=search_by)
+
+@app.route('/update/autocar/<int:client_id>', methods=['POST'])
+def update_autocar_client(client_id):
+    client = Profile.query.get_or_404(client_id)
+    
+    try:
+        client.amount_paid = float(request.form.get('amount_paid', 0))
+        client.total_amount = float(request.form.get('total_amount', 0))
+        client.service_completed = 'service_completed' in request.form
+        
+        # Update autocar specific fields if they exist in the form
+        if 'departure_location' in request.form:
+            client.departure_location = request.form['departure_location']
+        if 'arrival_location' in request.form:
+            client.arrival_location = request.form['arrival_location']
+        if 'departure_date' in request.form:
+            client.departure_date = datetime.strptime(request.form['departure_date'], '%Y-%m-%d')
+        if 'arrival_date' in request.form:
+            client.arrival_date = datetime.strptime(request.form['arrival_date'], '%Y-%m-%d') if request.form['arrival_date'] else None
+        if 'autocar_type' in request.form:
+            client.autocar_type = request.form['autocar_type']
+        if 'seat_number' in request.form:
+            client.seat_number = request.form['seat_number']
+        
+        db.session.commit()
+        flash('Autocar client updated successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating autocar client: {str(e)}', 'danger')
+    
+    return redirect(url_for('autocar'))
+
+@app.route('/delete/autocar/<int:client_id>')
+def delete_autocar_client(client_id):
+    client = Profile.query.get_or_404(client_id)
+    
+    try:
+        db.session.delete(client)
+        db.session.commit()
+        flash('Autocar client deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting autocar client: {str(e)}', 'danger')
+    
+    return redirect(url_for('autocar'))
 
 @app.route('/bateau')
 def bateau():
-    return render_template('bateau.html')
+    search_query = request.args.get('search', '').strip()
+    search_by = request.args.get('search_by', 'name')
+    query = Profile.query.filter_by(service_type='bateau')
+    
+    if search_query:
+        if search_by == 'name':
+            query = query.filter(db.or_(
+                Profile.first_name.ilike(f'%{search_query}%'),
+                Profile.last_name.ilike(f'%{search_query}%')
+            ))
+        elif search_by == 'passport':
+            query = query.filter(Profile.passport.ilike(f'%{search_query}%'))
+        elif search_by == 'phone':
+            query = query.filter(Profile.phone.ilike(f'%{search_query}%'))
+        elif search_by == 'nationality':
+            query = query.filter(Profile.nationality.ilike(f'%{search_query}%'))
+    
+    bateau_clients = query.order_by(Profile.service_completed, Profile.created_at.desc()).all()
+    return render_template('bateau.html', clients=bateau_clients, search_query=search_query, search_by=search_by)
+
+@app.route('/update_bateau_client/<int:client_id>', methods=['POST'])
+def update_bateau_client(client_id):
+    client = Profile.query.get_or_404(client_id)
+    
+    try:
+        client.amount_paid = float(request.form.get('amount_paid', 0))
+        client.total_amount = float(request.form.get('total_amount', 0))
+        client.service_completed = 'service_completed' in request.form
+        
+        db.session.commit()
+        flash('Bateau client updated successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating bateau client: {str(e)}', 'danger')
+    
+    return redirect(url_for('bateau'))
+
+@app.route('/delete_bateau_client/<int:client_id>')
+def delete_bateau_client(client_id):
+    client = Profile.query.get_or_404(client_id)
+    
+    try:
+        db.session.delete(client)
+        db.session.commit()
+        flash('Bateau client deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting bateau client: {str(e)}', 'danger')
+    
+    return redirect(url_for('bateau'))
 
 @app.route('/traduction')
 def traduction():
@@ -473,46 +628,85 @@ def factures():
 @app.route('/create', methods=['GET', 'POST'])
 def create_profile():
     form = ProfileForm()
+    
+    # Pre-select service type if coming from specific service page
+    if request.method == 'GET' and 'service_type' in request.args:
+        form.service_type.data = request.args.get('service_type')
+    
     if form.validate_on_submit():
-        print("Form validated successfully")  # Debug
-        print(f"Service type: {form.service_type.data}")  # Debug
-        
-        photo_filename = save_file(form.photo.data) if form.photo.data else None
-        documents_filename = save_file(form.documents.data) if form.documents.data else None
-        
-        profile = Profile(
-            first_name=form.first_name.data,
-            last_name=form.last_name.data,
-            phone=form.phone.data,
-            email=form.email.data,
-            nationality=form.nationality.data,
-            passport=form.passport.data,
-            cin=form.cin.data,
-            service_type=form.service_type.data,
-            custom_service=form.custom_service.data if form.service_type.data == 'other' else None,
-            photo_path=photo_filename,
-            documents_path=documents_filename,
-            amount_paid=0.0,
-            total_amount=0.0,
-            service_completed=False,
-            # Add transport fields
-            transport_type=form.transport_type.data if form.service_type.data == 'billet' else None,
-            transport_name=form.transport_name.data if form.service_type.data == 'billet' else None,
-            departure_location=form.departure_location.data if form.service_type.data == 'billet' else None,
-            arrival_location=form.arrival_location.data if form.service_type.data == 'billet' else None,
-            travel_date=form.travel_date.data if form.service_type.data == 'billet' else None
-        )
-        
-        db.session.add(profile)
         try:
+            # Common fields for all service types
+            profile_data = {
+                'first_name': form.first_name.data,
+                'last_name': form.last_name.data,
+                'phone': form.phone.data,
+                'email': form.email.data,
+                'nationality': form.nationality.data,
+                'passport': form.passport.data,
+                'cin': form.cin.data,
+                'service_type': form.service_type.data,
+                'custom_service': form.custom_service.data if form.service_type.data == 'other' else None,
+                'amount_paid': float(form.amount_paid.data or 0),
+                'total_amount': float(form.total_amount.data or 0),
+                'service_completed': False,
+                'created_at': datetime.utcnow()
+            }
+            
+            # Handle autocar specific fields
+            if form.service_type.data == 'autocar':
+                profile_data.update({
+                    'autocar_type': form.autocar_type.data,
+                    'seat_number': form.seat_number.data,
+                    'departure_location': form.departure_location.data,
+                    'arrival_location': form.arrival_location.data,
+                    'departure_date': form.departure_date.data,
+                    'arrival_date': form.arrival_date.data
+                })
+
+            if form.service_type.data == 'bateau':
+                profile_data.update({
+                    'bateau_type': form.bateau_type.data,
+                    'bateau_company': form.bateau_company.data,
+                    'departure_port': form.departure_port.data,
+                    'arrival_port': form.arrival_port.data,
+                    'departure_date_bateau': form.departure_date_bateau.data,
+                    'arrival_date_bateau': form.arrival_date_bateau.data,
+                    'cabin_number': form.cabin_number.data
+                })
+            
+            # Handle file uploads
+            if form.photo.data:
+                filename = secure_filename(form.photo.data.filename)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                form.photo.data.save(file_path)
+                profile_data['photo_path'] = filename
+            
+            if form.documents.data:
+                filename = secure_filename(form.documents.data.filename)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                form.documents.data.save(file_path)
+                profile_data['documents_path'] = filename
+            
+            # Create profile
+            profile = Profile(**profile_data)
+            db.session.add(profile)
             db.session.commit()
-            print("Profile saved to database")  # Debug
+            
             flash('Profile created successfully!', 'success')
-            return redirect(url_for('index'))
+            
+            # Redirect to appropriate service page
+            redirect_map = {
+                'autocar': 'autocar',
+                'hotel': 'hotel',
+                'billet': 'billet',
+                # Add other service types as needed
+            }
+            return redirect(url_for(redirect_map.get(form.service_type.data, 'clients')))
+                
         except Exception as e:
             db.session.rollback()
-            print(f"Error saving to database: {str(e)}")  # Debug
             flash(f'Error creating profile: {str(e)}', 'danger')
+            app.logger.error(f"Error creating profile: {str(e)}")
     
     return render_template('create_profile.html', form=form)
 

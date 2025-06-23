@@ -3,70 +3,178 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rafa Platform - Premium Travel Services</title>
+  <title>Autocar Services | Rafa Platform</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/autocar.css') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <!-- Services Sidebar -->
-    <div class="services-sidebar" id="servicesSidebar">
-        <h3 style="color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 1rem;">Our Services</h3>
-        <ul class="services-list">
-            <li><a href="{{ url_for('visa') }}">Visa</a></li>
-            <li><a href="{{ url_for('hotel') }}">Hotel</a></li>
-            <li><a href="{{ url_for('billet') }}">Billet</a></li>
-            <li><a href="{{ url_for('hajj') }}">Hajj</a></li>
-            <li><a href="{{ url_for('omra') }}">Omra</a></li>
-            <li><a href="{{ url_for('autocar') }}">Autocar</a></li>
-            <li><a href="{{ url_for('bateau') }}">Bateau</a></li>
-            <li><a href="{{ url_for('traduction') }}">Traduction</a></li>
-            <li><a href="{{ url_for('assurance') }}">Assurance</a></li>
-            <li><a href="{{ url_for('voyages') }}">Voyages organisés</a></li>
-            <li><a href="{{ url_for('transfert') }}">Transfert</a></li>
-            <li><a href="{{ url_for('statistics') }}">Statistics</a></li>
-            <li><a href="{{ url_for('factures') }}">Factures</a></li>
-            <li><a href="#">Autre</a></li>
-        </ul>
-    </div>
-    
-    <!-- Overlay -->
-    <div class="overlay" id="overlay"></div>
+  <div class="services-sidebar" id="servicesSidebar">
+    <h3 style="color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 1rem;">Our Services</h3>
+    <ul class="services-list">
+      <li><a href="{{ url_for('visa') }}">Visa</a></li>
+      <li><a href="{{ url_for('hotel') }}">Hotel</a></li>
+      <li><a href="{{ url_for('billet') }}">Billet</a></li>
+      <li><a href="{{ url_for('hajj') }}">Hajj</a></li>
+      <li><a href="{{ url_for('omra') }}">Omra</a></li>
+      <li><a href="{{ url_for('autocar') }}">Autocar</a></li>
+      <li><a href="{{ url_for('bateau') }}">Bateau</a></li>
+      <li><a href="{{ url_for('traduction') }}">Traduction</a></li>
+      <li><a href="{{ url_for('assurance') }}">Assurance</a></li>
+      <li><a href="{{ url_for('voyages') }}">Voyages organisés</a></li>
+      <li><a href="{{ url_for('transfert') }}">Transfert</a></li>
+      <li><a href="{{ url_for('statistics') }}">Statistics</a></li>
+      <li><a href="{{ url_for('factures') }}">Factures</a></li>
+      <li><a href="#">Autre</a></li>
+    </ul>
+  </div>
+  
+  <!-- Overlay -->
+  <div class="overlay" id="overlay"></div>
 
-    <!-- Header/Navigation -->
-    <header class="navbar">
-        <a href="{{ url_for('index') }}" class="logo-link">
-            <img src="{{ url_for('static', filename='images/logo.jpeg') }}" alt="Rafa Logo" class="logo-img" width="150" height="50">
-        </a>
-        
-        <button class="toggle-button" aria-label="Toggle navigation">
-            <span class="bar"></span>
-            <span class="bar"></span>
-            <span class="bar"></span>
-        </button>
-        
-        <nav class="navbar-links">
-            <ul>
-                <li><a href="{{ url_for('index') }}">Home</a></li>
-                <li><a href="{{ url_for('create_profile') }}">Create</a></li>
-                <li><a href="{{ url_for('clients') }}">Clients</a></li>
-                <li><a href="#contact">Contact</a></li>
-                <li><button class="sidebar-toggle" id="sidebarToggle">Services</button></li>
-            </ul>
-        </nav>
-    </header>
+  <!-- Header/Navigation -->
+  <header class="navbar">
+    <a href="{{ url_for('index') }}" class="logo-link">
+      <img src="{{ url_for('static', filename='images/logo.jpeg') }}" alt="Rafa Logo" class="logo-img" width="150" height="50">
+    </a>
+    
+    <button class="toggle-button" aria-label="Toggle navigation">
+      <span class="bar"></span>
+      <span class="bar"></span>
+      <span class="bar"></span>
+    </button>
+    
+    <nav class="navbar-links">
+      <ul>
+        <li><a href="{{ url_for('index') }}">Home</a></li>
+        <li><a href="{{ url_for('create_profile') }}">Create</a></li>
+        <li><a href="{{ url_for('clients') }}">Clients</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li><button class="sidebar-toggle" id="sidebarToggle">Services</button></li>
+      </ul>
+    </nav>
+  </header>
+
   <!-- Main Content -->
   <main id="main-content">
-    <!-- Hero Section -->
-    <section class="hero">
+    <section class="autocar-management">
+      <h1>Autocar Services</h1>
+      
+      <!-- Search and Filter Section -->
+      <div class="search-container">
+        <form method="GET" action="{{ url_for('autocar') }}" class="search-form">
+          <div class="search-input-group">
+            <input type="text" name="search" placeholder="Search clients..." value="{{ search_query if search_query }}">
+            <select name="search_by" class="search-select">
+              <option value="name" {% if search_by == 'name' %}selected{% endif %}>Name</option>
+              <option value="phone" {% if search_by == 'phone' %}selected{% endif %}>Phone</option>
+              <option value="departure" {% if search_by == 'departure' %}selected{% endif %}>Departure</option>
+              <option value="destination" {% if search_by == 'destination' %}selected{% endif %}>Destination</option>
+            </select>
+            <button type="submit" class="search-btn">Search</button>
+            {% if search_query %}
+            <a href="{{ url_for('autocar') }}" class="clear-search">Clear</a>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+      
+      <!-- Autocar Clients List -->
+      <div class="autocar-list">
+        {% for client in clients %}
+        <div class="autocar-card {% if client.service_completed %}completed{% endif %}">
+          <div class="client-info">
+            <h3>{{ client.first_name }} {{ client.last_name }}</h3>
+            <p><strong>Phone:</strong> {{ client.phone }}</p>
+            <p><strong>Nationality:</strong> {{ client.nationality }}</p>
+            
+            <div class="autocar-details">
+              <div class="detail-row">
+                <div>
+                  <p><strong>Departure:</strong> {{ client.departure_location }}</p>
+                  <p><strong>Date:</strong> {{ client.departure_date.strftime('%Y-%m-%d') if client.departure_date }}</p>
+                </div>
+                <div>
+                  <p><strong>Destination:</strong> {{ client.arrival_location }}</p>
+                  <p><strong>Date:</strong> {{ client.arrival_date.strftime('%Y-%m-%d') if client.arrival_date }}</p>
+                </div>
+              </div>
+              
+              <p><strong>Autocar Type:</strong> {{ client.autocar_type }}</p>
+              <p><strong>Seats:</strong> {{ client.seat_number }}</p>
+              <p><strong>Status:</strong> 
+                <span class="status-badge {% if client.service_completed %}completed{% else %}pending{% endif %}">
+                  {% if client.service_completed %}Completed{% else %}Pending{% endif %}
+                </span>
+              </p>
+            </div>
+          </div>
+          
+          <div class="payment-info">
+            <div class="payment-summary">
+              <div class="payment-field">
+                <label>Price:</label>
+                <span class="price">{{ "%.2f"|format(client.total_amount if client.total_amount is not none else 0) }} DH</span>
+              </div>
+              <div class="payment-field">
+                <label>Paid:</label>
+                <span class="amount-paid">{{ "%.2f"|format(client.amount_paid if client.amount_paid is not none else 0) }} DH</span>
+              </div>
+              <div class="payment-field">
+                <label>Due:</label>
+                <span class="amount-due">
+                  {{ "%.2f"|format((client.total_amount if client.total_amount is not none else 0) - (client.amount_paid if client.amount_paid is not none else 0)) }} DH
+                </span>
+              </div>
+            </div>
+            
+            <form class="payment-form" method="POST" action="{{ url_for('update_autocar_client', client_id=client.id) }}">
+              <div class="form-group">
+                <label>Update Payment (DH)</label>
+                <input type="number" name="amount_paid" 
+                       value="{{ client.amount_paid if client.amount_paid is not none else 0 }}" 
+                       step="0.01" min="0" 
+                       max="{{ client.total_amount if client.total_amount is not none else '' }}"
+                       required>
+              </div>
+              <div class="form-group">
+                <label>Total Price (DH)</label>
+                <input type="number" name="total_amount" 
+                       value="{{ client.total_amount if client.total_amount is not none else 0 }}" 
+                       step="0.01" min="0"
+                       required>
+              </div>
+              <div class="form-group checkbox">
+                <label>
+                  <input type="checkbox" name="service_completed" {% if client.service_completed %}checked{% endif %}>
+                  Trip Completed
+                </label>
+              </div>
+              <div class="client-actions">
+                <button type="submit" class="save-btn">Save</button>
+                <a href="{{ url_for('delete_autocar_client', client_id=client.id) }}" class="delete-btn" onclick="return confirm('Delete this autocar reservation?')">Delete</a>
+              </div>
+            </form>
+          </div>
+        </div>
+        {% else %}
+        <div class="no-clients">
+          <p>No autocar clients found.</p>
+          <a href="{{ url_for('create_profile') }}?service_type=autocar" class="cta-button">Create New Autocar Reservation</a>
+        </div>
+        {% endfor %}
+      </div>
     </section>
   </main>
+
   <!-- Footer -->
   <footer id="contact">
     <div class="footer-content">
       <div class="footer-section">
-        <h3 class="o">Quick Links</h3>
+        <h3>Quick Links</h3>
         <ul>
           <li><a href="{{ url_for('index') }}">Home</a></li>
           <li><a href="{{ url_for('create_profile') }}">Create Profile</a></li>
@@ -75,7 +183,7 @@
       </div>
       
       <div class="footer-section">
-        <h3 class="o">Contact Us</h3>
+        <h3>Contact Us</h3>
         <ul>
           <li>Email: Rafavoyages@gmail.com</li>
           <li>Phone: +212 650-212366</li>
@@ -84,7 +192,7 @@
       </div>
       
       <div class="footer-section">
-        <h3 class="o">Follow Us</h3>
+        <h3>Follow Us</h3>
         <ul>
           <li><a href="https://www.instagram.com/agencerafavoyages">Instagram</a></li>
           <li><a href="#">LinkedIn</a></li>
@@ -99,36 +207,72 @@
   </footer>
 
   <script>
-    // JavaScript remains the same as in your original template
-    const toggleButton = document.querySelector('.toggle-button');
-    const navbarLinks = document.querySelector('.navbar-links');
-
-    toggleButton.addEventListener('click', () => {
-      navbarLinks.classList.toggle('active');
-      toggleButton.classList.toggle('active');
-    });
-
+document.addEventListener('DOMContentLoaded', function() {
+    // Sidebar toggle functionality
     const sidebarToggle = document.getElementById('sidebarToggle');
     const servicesSidebar = document.getElementById('servicesSidebar');
     const overlay = document.getElementById('overlay');
-
-    sidebarToggle.addEventListener('click', (e) => {
-      e.stopPropagation();
-      servicesSidebar.classList.toggle('active');
-      overlay.classList.toggle('active');
-    });
-
-    overlay.addEventListener('click', () => {
-      servicesSidebar.classList.remove('active');
-      overlay.classList.remove('active');
+    
+    function toggleSidebar() {
+        servicesSidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+    }
+    
+    sidebarToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        toggleSidebar();
     });
     
-    document.addEventListener('click', (e) => {
-      if (!servicesSidebar.contains(e.target) && e.target !== sidebarToggle) {
-        servicesSidebar.classList.remove('active');
-        overlay.classList.remove('active');
-      }
+    overlay.addEventListener('click', toggleSidebar);
+    
+    // Close sidebar when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!servicesSidebar.contains(e.target) && e.target !== sidebarToggle) {
+            servicesSidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        }
     });
-  </script>
+
+    // Payment form validation
+    const paymentForms = document.querySelectorAll('.payment-form');
+    paymentForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const amountPaid = parseFloat(this.querySelector('input[name="amount_paid"]').value);
+            const totalAmount = parseFloat(this.querySelector('input[name="total_amount"]').value);
+            
+            if (amountPaid > totalAmount) {
+                e.preventDefault();
+                alert('Amount paid cannot exceed total amount!');
+            }
+        });
+    });
+
+    // Initialize date inputs in forms (if any)
+    const dateInputs = document.querySelectorAll('input[type="date"]');
+    const today = new Date().toISOString().split('T')[0];
+    dateInputs.forEach(input => {
+        if (!input.value) {
+            input.value = today;
+        }
+        input.min = today;
+    });
+
+    // File upload display
+    document.querySelectorAll('.photo-upload').forEach(uploadDiv => {
+        const fileInput = uploadDiv.querySelector('input[type="file"]');
+        const infoText = uploadDiv.querySelector('p');
+        
+        uploadDiv.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                infoText.textContent = e.target.files[0].name;
+            }
+        });
+    });
+});
+</script>
 </body>
 </html>
