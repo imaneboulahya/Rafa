@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rafa Platform - Premium Travel Services</title>
+  <title>Transfert Services | Rafa Platform</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/transfert.css') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -20,15 +21,13 @@
       <li><a href="{{ url_for('hajj') }}">Hajj</a></li>
       <li><a href="{{ url_for('omra') }}">Omra</a></li>
       <li><a href="{{ url_for('autocar') }}">Autocar</a></li>
-      <li><a href="{{ url_for('autocar') }}">Bateau</a></li>
+      <li><a href="{{ url_for('bateau') }}">Bateau</a></li>
       <li><a href="{{ url_for('traduction') }}">Traduction</a></li>
       <li><a href="{{ url_for('assurance') }}">Assurance</a></li>
       <li><a href="{{ url_for('voyages') }}">Voyages organisés</a></li>
       <li><a href="{{ url_for('transfert') }}">Transfert</a></li>
       <li><a href="{{ url_for('statistics') }}">Statistics</a></li>
       <li><a href="{{ url_for('factures') }}">Factures</a></li>
-      <li><a href="{{ url_for('transfert') }}">Transfert</a></li>
-      <li><a href="#">Autre</a></li>
     </ul>
   </div>
   
@@ -51,17 +50,99 @@
       <ul>
         <li><a href="{{ url_for('index') }}">Home</a></li>
         <li><a href="{{ url_for('create_profile') }}">Create</a></li>
+        <li><a href="{{ url_for('clients') }}">Clients</a></li>
         <li><a href="#contact">Contact</a></li>
         <li><button class="sidebar-toggle" id="sidebarToggle">Services</button></li>
       </ul>
     </nav>
   </header>
+
   <!-- Main Content -->
   <main id="main-content">
-    <!-- Hero Section -->
-    <section class="hero">
+    <section class="transfer-management">
+      <h1>Transfert Services</h1>
+      
+      <div class="search-container">
+        <form method="GET" action="{{ url_for('transfert') }}" class="search-form">
+          <input type="text" name="search" placeholder="Search transfers..." value="{{ search_query }}">
+          <select name="completed" class="status-filter">
+            <option value="false" {% if not completed %}selected{% endif %}>Active Only</option>
+            <option value="true" {% if completed %}selected{% endif %}>All Transfers</option>
+          </select>
+          <button type="submit" class="search-btn">Search</button>
+          {% if search_query %}
+            <a href="{{ url_for('transfert') }}" class="clear-search">Clear</a>
+          {% endif %}
+        </form>
+        <a href="{{ url_for('create_profile') }}?service_type=transfert" class="new-transfer-btn">+ New Transfer</a>
+      </div>
+      
+      <div class="transfer-list">
+        {% for transfer in transfers %}
+        <div class="transfer-card {% if transfer.is_completed %}completed{% endif %}">
+          <div class="transfer-info">
+            <h3>{{ transfer.profile.first_name }} {{ transfer.profile.last_name }}</h3>
+            <div class="route-details">
+              <p><strong>From:</strong> {{ transfer.from_location }}</p>
+              <p><strong>To:</strong> {{ transfer.to_location }}</p>
+              <p><strong>Date:</strong> {{ transfer.transfer_date.strftime('%Y-%m-%d') }}</p>
+              <p><strong>Status:</strong> 
+                <span class="status-badge {% if transfer.is_completed %}completed{% else %}pending{% endif %}">
+                  {% if transfer.is_completed %}Completed{% else %}Pending{% endif %}
+                </span>
+              </p>
+            </div>
+            <p><strong>Phone:</strong> {{ transfer.profile.phone }}</p>
+          </div>
+          
+          <div class="payment-info">
+            <div class="payment-details">
+              <div class="payment-field">
+                <label>Paid:</label>
+                <span class="amount-paid">{{ "%.2f"|format(transfer.amount_paid) }} DH</span>
+              </div>
+              <div class="payment-field">
+                <label>Due:</label>
+                <span class="amount-due">
+                  {{ "%.2f"|format(transfer.total_amount - transfer.amount_paid) }} DH
+                </span>
+              </div>
+              <div class="payment-field">
+                <label>Total:</label>
+                <span class="total-amount">{{ "%.2f"|format(transfer.total_amount) }} DH</span>
+              </div>
+            </div>
+            
+            <form method="POST" action="{{ url_for('update_transfert', transfer_id=transfer.id) }}" class="payment-form">
+              <div class="form-group">
+                <input type="number" name="amount_paid" value="{{ transfer.amount_paid }}" step="0.01" min="0" required>
+              </div>
+              <div class="form-group">
+                <input type="number" name="total_amount" value="{{ transfer.total_amount }}" step="0.01" min="0" required>
+              </div>
+              <div class="form-group checkbox">
+                <label>
+                  <input type="checkbox" name="is_completed" {% if transfer.is_completed %}checked{% endif %}>
+                  Completed
+                </label>
+              </div>
+              <div class="transfer-actions">
+                <button type="submit" class="save-btn">Save</button>
+                <a href="{{ url_for('delete_transfert', transfer_id=transfer.id) }}" class="delete-btn" onclick="return confirm('Delete this transfer?')">×</a>
+              </div>
+            </form>
+          </div>
+        </div>
+        {% else %}
+        <div class="no-transfers">
+          <p>No transfers found.</p>
+          <a href="{{ url_for('create_profile') }}?service_type=transfert" class="cta-btn">Create New Transfer</a>
+        </div>
+        {% endfor %}
+      </div>
     </section>
   </main>
+
   <!-- Footer -->
   <footer id="contact">
     <div class="footer-content">
@@ -98,37 +179,6 @@
     </div>
   </footer>
 
-  <script>
-    // JavaScript remains the same as in your original template
-    const toggleButton = document.querySelector('.toggle-button');
-    const navbarLinks = document.querySelector('.navbar-links');
-
-    toggleButton.addEventListener('click', () => {
-      navbarLinks.classList.toggle('active');
-      toggleButton.classList.toggle('active');
-    });
-
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const servicesSidebar = document.getElementById('servicesSidebar');
-    const overlay = document.getElementById('overlay');
-
-    sidebarToggle.addEventListener('click', (e) => {
-      e.stopPropagation();
-      servicesSidebar.classList.toggle('active');
-      overlay.classList.toggle('active');
-    });
-
-    overlay.addEventListener('click', () => {
-      servicesSidebar.classList.remove('active');
-      overlay.classList.remove('active');
-    });
-    
-    document.addEventListener('click', (e) => {
-      if (!servicesSidebar.contains(e.target) && e.target !== sidebarToggle) {
-        servicesSidebar.classList.remove('active');
-        overlay.classList.remove('active');
-      }
-    });
-  </script>
+  <script src="{{ url_for('static', filename='js/transfert.js') }}"></script>
 </body>
 </html>

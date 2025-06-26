@@ -399,32 +399,53 @@
             const autocarFields = document.getElementById('autocar-fields');
             const bateauFields = document.getElementById('bateau-fields');
 
-            function updateServiceFields() {
-    // Hide all specific fields first
-    customServiceInput.style.display = 'none';
-    customServiceInput.required = false;
-    if (autocarFields) autocarFields.style.display = 'none';
-    if (bateauFields) bateauFields.style.display = 'none';
-    if (document.getElementById('assurance-fields')) document.getElementById('assurance-fields').style.display = 'none';
-    if (document.getElementById('traduction-fields')) document.getElementById('traduction-fields').style.display = 'none';
+            // Improved version of the service fields visibility function
+function updateServiceFields() {
+    // Safely get all possible service fields
+    const serviceFields = {
+        custom: customServiceInput,
+        autocar: document.getElementById('autocar-fields'),
+        bateau: document.getElementById('bateau-fields'),
+        assurance: document.getElementById('assurance-fields'),
+        traduction: document.getElementById('traduction-fields'),
+        transfert: document.getElementById('transfert-fields')
+    };
+
+    // Hide all fields first
+    Object.values(serviceFields).forEach(field => {
+        if (field) {
+            field.style.display = 'none';
+            // Remove required attribute when hidden
+            const inputs = field.querySelectorAll('[required]');
+            inputs.forEach(input => input.removeAttribute('required'));
+        }
+    });
 
     // Show relevant fields based on selection
     switch(serviceTypeSelect.value) {
         case 'autocar':
-            if (autocarFields) autocarFields.style.display = 'block';
+            if (serviceFields.autocar) {
+                serviceFields.autocar.style.display = 'block';
+                // Add required to necessary fields if needed
+            }
             break;
         case 'bateau':
-            if (bateauFields) bateauFields.style.display = 'block';
+            if (serviceFields.bateau) serviceFields.bateau.style.display = 'block';
             break;
         case 'assurance':
-            if (document.getElementById('assurance-fields')) document.getElementById('assurance-fields').style.display = 'block';
+            if (serviceFields.assurance) serviceFields.assurance.style.display = 'block';
+            break;
+        case 'transfert':
+            if (serviceFields.transfert) serviceFields.transfert.style.display = 'block';
             break;
         case 'traduction':
-            if (document.getElementById('traduction-fields')) document.getElementById('traduction-fields').style.display = 'block';
+            if (serviceFields.traduction) serviceFields.traduction.style.display = 'block';
             break;
         case 'other':
-            customServiceInput.style.display = 'block';
-            customServiceInput.required = true;
+            if (serviceFields.custom) {
+                serviceFields.custom.style.display = 'block';
+                serviceFields.custom.required = true;
+            }
             break;
     }
 }
