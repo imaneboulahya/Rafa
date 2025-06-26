@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Services de Voyage | Rafa Platform</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/voyage.css') }}">
+</head>
+<body>
+  <!-- Services Sidebar -->
+  <div class="services-sidebar" id="servicesSidebar">
+    <h3 style="color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 1rem;">Our Services</h3>
+    <ul class="services-list">
+      <li><a href="{{ url_for('visa') }}">Visa</a></li>
+      <li><a href="{{ url_for('hotel') }}">Hotel</a></li>
+      <li><a href="{{ url_for('billet') }}">Billet</a></li>
+      <li><a href="{{ url_for('hajj') }}">Hajj</a></li>
+      <li><a href="{{ url_for('omra') }}">Omra</a></li>
+      <li><a href="{{ url_for('autocar') }}">Autocar</a></li>
+      <li><a href="{{ url_for('bateau') }}">Bateau</a></li>
+      <li><a href="{{ url_for('traduction') }}">Traduction</a></li>
+      <li><a href="{{ url_for('assurance') }}">Assurance</a></li>
+      <li><a href="{{ url_for('voyage') }}">Voyages organisés</a></li>
+      <li><a href="{{ url_for('transfert') }}">Transfert</a></li>
+      <li><a href="{{ url_for('statistics') }}">Statistics</a></li>
+      <li><a href="{{ url_for('etudiant') }}">Etudiants</a></li>
+    </ul>
+  </div>
+  
+  <!-- Overlay -->
+  <div class="overlay" id="overlay"></div>
+
+  <!-- Header/Navigation -->
+  <header class="navbar">
+    <a href="{{ url_for('index') }}" class="logo-link">
+      <img src="{{ url_for('static', filename='images/logo.jpeg') }}" alt="Rafa Logo" class="logo-img" width="150" height="50">
+    </a>
+    
+    <button class="toggle-button" aria-label="Toggle navigation">
+      <span class="bar"></span>
+      <span class="bar"></span>
+      <span class="bar"></span>
+    </button>
+    
+    <nav class="navbar-links">
+      <ul>
+        <li><a href="{{ url_for('index') }}">Home</a></li>
+        <li><a href="{{ url_for('create_profile') }}">Create</a></li>
+        <li><a href="{{ url_for('clients') }}">Clients</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li><button class="sidebar-toggle" id="sidebarToggle">Services</button></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="main-content">
+    <section class="voyage-management">
+      <h1>Gestion des Voyages</h1>
+      
+      <div class="search-container">
+        <form method="GET" action="{{ url_for('voyage') }}" class="search-form">
+          <input type="text" name="search" placeholder="Rechercher..." value="{{ search_query }}">
+          <select name="statut" class="status-filter">
+            <option value="tous" {% if statut_filter == 'tous' %}selected{% endif %}>Tous</option>
+            <option value="confirmé" {% if statut_filter == 'confirmé' %}selected{% endif %}>Confirmé</option>
+            <option value="en attente" {% if statut_filter == 'en attente' %}selected{% endif %}>En attente</option>
+            <option value="annulé" {% if statut_filter == 'annulé' %}selected{% endif %}>Annulé</option>
+          </select>
+          <button type="submit" class="search-btn">Rechercher</button>
+        </form>
+        <a href="{{ url_for('create_profile') }}?service_type=voyage" class="new-voyage-btn">+ Nouveau Voyage</a>
+      </div>
+      
+      <div class="voyage-list">
+        {% for voyage in voyages %}
+        <div class="voyage-card {{ voyage.voyage_statut|replace(' ', '-') }}">
+          <div class="voyage-header">
+            <div class="client-info">
+              <h3>{{ voyage.first_name }} {{ voyage.last_name }}</h3>
+              <p><strong>Téléphone:</strong> {{ voyage.phone }}</p>
+              <p><strong>Email:</strong> {{ voyage.email or 'Non spécifié' }}</p>
+            </div>
+            <div class="voyage-status">
+              <span class="status-badge {{ voyage.voyage_statut|replace(' ', '-') }}">
+                {{ voyage.voyage_statut }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="voyage-details">
+            <div class="detail-group">
+              <p><strong>Destination:</strong> {{ voyage.voyage_destination }}</p>
+              <p><strong>Date départ:</strong> 
+                {% if voyage.voyage_date_depart %}
+                  {{ voyage.voyage_date_depart.strftime('%d/%m/%Y') }}
+                {% else %}
+                  Non spécifiée
+                {% endif %}
+              </p>
+              <p><strong>Date retour:</strong> 
+                {% if voyage.voyage_date_retour %}
+                  {{ voyage.voyage_date_retour.strftime('%d/%m/%Y') }}
+                {% else %}
+                  Non spécifiée
+                {% endif %}
+              </p>
+            </div>
+            <div class="detail-group">
+              <p><strong>Prix:</strong> {{ "%.2f"|format(voyage.voyage_prix or 0) }} DH</p>
+              <p><strong>Montant payé:</strong> {{ "%.2f"|format(voyage.amount_paid) }} DH</p>
+              <p><strong>Reste à payer:</strong> {{ "%.2f"|format(voyage.total_amount - voyage.amount_paid) }} DH</p>
+            </div>
+          </div>
+          
+          <form method="POST" action="{{ url_for('update_voyage', voyage_id=voyage.id) }}" class="voyage-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Destination</label>
+                <input type="text" name="destination" value="{{ voyage.voyage_destination }}" required>
+              </div>
+              <div class="form-group">
+                <label>Date départ</label>
+                <input type="date" name="date_depart" 
+                       value="{% if voyage.voyage_date_depart %}{{ voyage.voyage_date_depart.strftime('%Y-%m-%d') }}{% endif %}" 
+                       required>
+              </div>
+              <div class="form-group">
+                <label>Date retour</label>
+                <input type="date" name="date_retour" 
+                       value="{% if voyage.voyage_date_retour %}{{ voyage.voyage_date_retour.strftime('%Y-%m-%d') }}{% endif %}" 
+                       required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Prix (DH)</label>
+                <input type="number" name="prix" value="{{ voyage.voyage_prix }}" step="0.01" min="0" required>
+              </div>
+              <div class="form-group">
+                <label>Montant payé (DH)</label>
+                <input type="number" name="amount_paid" value="{{ voyage.amount_paid }}" step="0.01" min="0" required>
+              </div>
+              <div class="form-group">
+                <label>Statut</label>
+                <select name="statut" required>
+                  <option value="confirmé" {% if voyage.voyage_statut == 'confirmé' %}selected{% endif %}>Confirmé</option>
+                  <option value="en attente" {% if voyage.voyage_statut == 'en attente' %}selected{% endif %}>En attente</option>
+                  <option value="annulé" {% if voyage.voyage_statut == 'annulé' %}selected{% endif %}>Annulé</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="save-btn">Enregistrer</button>
+              <a href="#" class="delete-btn" onclick="confirmDelete({{ voyage.id }})">Supprimer</a>
+            </div>
+          </form>
+        </div>
+        {% else %}
+        <div class="no-voyages">
+          <p>Aucun voyage trouvé.</p>
+          <a href="{{ url_for('create_profile') }}?service_type=voyage" class="cta-btn">Créer un nouveau voyage</a>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Sidebar toggle functionality
+      const sidebarToggle = document.getElementById('sidebarToggle');
+      const servicesSidebar = document.getElementById('servicesSidebar');
+      const overlay = document.getElementById('overlay');
+      const body = document.body;
+      
+      function toggleSidebar() {
+        servicesSidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+        body.classList.toggle('no-scroll');
+      }
+      
+      if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', toggleSidebar);
+      }
+      
+      if (overlay) {
+        overlay.addEventListener('click', toggleSidebar);
+      }
+      
+      // Close sidebar when clicking outside on mobile
+      document.addEventListener('click', function(event) {
+        if (window.innerWidth <= 991 && 
+            servicesSidebar && 
+            !servicesSidebar.contains(event.target) && 
+            sidebarToggle && 
+            !sidebarToggle.contains(event.target) &&
+            servicesSidebar.classList.contains('active')) {
+          toggleSidebar();
+        }
+      });
+      
+      // Responsive behavior for sidebar
+      window.addEventListener('resize', function() {
+        if (window.innerWidth > 991 && servicesSidebar) {
+          servicesSidebar.classList.remove('active');
+          if (overlay) overlay.classList.remove('active');
+          body.classList.remove('no-scroll');
+        }
+      });
+    });
+
+    function confirmDelete(voyageId) {
+      if (confirm('Êtes-vous sûr de vouloir supprimer ce voyage?')) {
+        window.location.href = `/delete_voyage/${voyageId}`;
+      }
+      return false;
+    }
+  </script>
+</body>
+</html>

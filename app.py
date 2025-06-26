@@ -57,6 +57,11 @@ class Profile(db.Model):
     start_date = db.Column(db.Date)
     end_date = db.Column(db.Date)
     coverage_details = db.Column(db.Text)
+    voyage_destination = db.Column(db.String(100))
+    voyage_date_depart = db.Column(db.Date)
+    voyage_date_retour = db.Column(db.Date)
+    voyage_prix = db.Column(db.Float)
+    voyage_statut = db.Column(db.String(20))
 
 # Forms
 class ProfileForm(FlaskForm):
@@ -78,6 +83,7 @@ class ProfileForm(FlaskForm):
         ('traduction', 'Traduction'),
         ('assurance', 'Assurance'),
         ('transfert', 'Transfert'),
+        ('voyage', 'Voyage'),
         ('other', 'Other (Please specify)')
     ], validators=[InputRequired()])
     custom_service = StringField('Custom Service')
@@ -711,9 +717,66 @@ def assurance():
                          search_query=search_query,
                          search_by=search_by)
 
-@app.route('/voyages')
-def voyages():
-    return render_template('voyages.html')
+@app.route('/voyage')
+def voyage():
+    search_query = request.args.get('search', '').strip()
+    statut_filter = request.args.get('statut', 'tous')
+    
+    query = Profile.query.filter_by(service_type='voyage')
+    
+    if statut_filter != 'tous':
+        query = query.filter(Profile.voyage_statut == statut_filter)
+    
+    if search_query:
+        query = query.filter(
+            db.or_(
+                Profile.first_name.ilike(f'%{search_query}%'),
+                Profile.last_name.ilike(f'%{search_query}%'),
+                Profile.phone.ilike(f'%{search_query}%'),
+                Profile.voyage_destination.ilike(f'%{search_query}%')
+            )
+        )
+    
+    voyages = query.order_by(Profile.voyage_date_depart).all()
+    
+    return render_template(
+        'voyage.html',
+        voyages=voyages,
+        search_query=search_query,
+        statut_filter=statut_filter
+    )
+
+# Route pour mettre à jour un voyage
+@app.route('/update_voyage/<int:voyage_id>', methods=['POST'])
+def update_voyage(voyage_id):
+    voyage = Profile.query.get_or_404(voyage_id)
+    
+    try:
+        voyage.voyage_destination = request.form['destination']
+        voyage.voyage_date_depart = datetime.strptime(request.form['date_depart'], '%Y-%m-%d')
+        voyage.voyage_date_retour = datetime.strptime(request.form['date_retour'], '%Y-%m-%d')
+        voyage.voyage_prix = float(request.form['prix'])
+        voyage.voyage_statut = request.form['statut']
+        
+        db.session.commit()
+        flash('Voyage mis à jour avec succès!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erreur lors de la mise à jour: {str(e)}', 'danger')
+    
+    return redirect(url_for('voyage'))
+
+@app.route('/delete_voyage/<int:voyage_id>')
+def delete_voyage(voyage_id):
+    voyage = Profile.query.get_or_404(voyage_id)
+    try:
+        db.session.delete(voyage)
+        db.session.commit()
+        flash('Voyage supprimé avec succès!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erreur lors de la suppression: {str(e)}', 'danger')
+    return redirect(url_for('voyage'))
 
 @app.route('/transfert')
 def transfert():
@@ -780,9 +843,9 @@ def delete_transfert(transfer_id):
 def statistics():
     return render_template('statistics.html')
 
-@app.route('/factures')
-def factures():
-    return render_template('factures.html')
+@app.route('/etudiant')
+def etudiant():
+    return render_template('etudiant.html')
 
 @app.route('/create', methods=['GET', 'POST'])
 def create_profile():
