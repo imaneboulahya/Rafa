@@ -498,7 +498,84 @@ def delete_hotel_client(client_id):
 
 @app.route('/hajj')
 def hajj():
-    return render_template('hajj.html')
+    search_query = request.args.get('search', '').strip()
+    search_by = request.args.get('search_by', 'name')
+    completed_filter = request.args.get('completed', 'false') == 'true'
+    
+    query = Profile.query.filter_by(service_type='hajj')
+    
+    if not completed_filter:
+        query = query.filter(Profile.service_completed == False)
+    
+    if search_query:
+        if search_by == 'name':
+            query = query.filter(db.or_(
+                Profile.first_name.ilike(f'%{search_query}%'),
+                Profile.last_name.ilike(f'%{search_query}%')
+            ))
+        elif search_by == 'passport':
+            query = query.filter(Profile.passport.ilike(f'%{search_query}%'))
+        elif search_by == 'phone':
+            query = query.filter(Profile.phone.ilike(f'%{search_query}%'))
+        elif search_by == 'nationality':
+            query = query.filter(Profile.nationality.ilike(f'%{search_query}%'))
+    
+    hajj_clients = query.order_by(Profile.departure_date).all()
+    
+    # Calculate statistics
+    total_clients = len(hajj_clients)
+    completed_clients = len([c for c in hajj_clients if c.service_completed])
+    total_revenue = sum(c.total_amount for c in hajj_clients if c.total_amount)
+    paid_amount = sum(c.amount_paid for c in hajj_clients if c.amount_paid)
+    
+    return render_template(
+        'hajj.html',
+        clients=hajj_clients,
+        search_query=search_query,
+        search_by=search_by,
+        completed_filter=completed_filter,
+        total_clients=total_clients,
+        completed_clients=completed_clients,
+        total_revenue=total_revenue,
+        paid_amount=paid_amount
+    )
+
+@app.route('/update_hajj_client/<int:client_id>', methods=['POST'])
+def update_hajj_client(client_id):
+    client = Profile.query.get_or_404(client_id)
+    
+    try:
+        client.amount_paid = float(request.form.get('amount_paid', 0))
+        client.total_amount = float(request.form.get('total_amount', 0))
+        client.service_completed = 'service_completed' in request.form
+        
+        # Handle Hajj specific dates
+        if 'departure_date' in request.form and request.form['departure_date']:
+            client.departure_date = datetime.strptime(request.form['departure_date'], '%Y-%m-%d')
+        if 'arrival_date' in request.form and request.form['arrival_date']:
+            client.arrival_date = datetime.strptime(request.form['arrival_date'], '%Y-%m-%d')
+        
+        db.session.commit()
+        flash('Hajj client updated successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating Hajj client: {str(e)}', 'danger')
+    
+    return redirect(url_for('hajj'))
+
+@app.route('/delete_hajj_client/<int:client_id>')
+def delete_hajj_client(client_id):
+    client = Profile.query.get_or_404(client_id)
+    
+    try:
+        db.session.delete(client)
+        db.session.commit()
+        flash('Hajj client deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting Hajj client: {str(e)}', 'danger')
+    
+    return redirect(url_for('hajj'))
 
 @app.route('/omra')
 def omra():

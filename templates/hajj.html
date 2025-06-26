@@ -3,64 +3,224 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rafa Platform - Premium Travel Services</title>
+  <title>Hajj Services - Rafa Platform</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/omra.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
   <!-- Services Sidebar -->
-    <div class="services-sidebar" id="servicesSidebar">
-        <h3 style="color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 1rem;">Our Services</h3>
-        <ul class="services-list">
-            <li><a href="{{ url_for('visa') }}">Visa</a></li>
-            <li><a href="{{ url_for('hotel') }}">Hotel</a></li>
-            <li><a href="{{ url_for('billet') }}">Billet</a></li>
-            <li><a href="{{ url_for('hajj') }}">Hajj</a></li>
-            <li><a href="{{ url_for('omra') }}">Omra</a></li>
-            <li><a href="{{ url_for('autocar') }}">Autocar</a></li>
-            <li><a href="{{ url_for('bateau') }}">Bateau</a></li>
-            <li><a href="{{ url_for('traduction') }}">Traduction</a></li>
-            <li><a href="{{ url_for('assurance') }}">Assurance</a></li>
-            <li><a href="{{ url_for('voyage') }}">Voyages organisés</a></li>
-            <li><a href="{{ url_for('transfert') }}">Transfert</a></li>
-            <li><a href="{{ url_for('statistics') }}">Statistics</a></li>
-            <li><a href="{{ url_for('etudiant') }}">Etudiants</a></li>
-        </ul>
-    </div>
-    
-    <!-- Overlay -->
-    <div class="overlay" id="overlay"></div>
+  <div class="services-sidebar" id="servicesSidebar">
+    <h3 style="color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 1rem;">Our Services</h3>
+    <ul class="services-list">
+      <li><a href="{{ url_for('visa') }}">Visa</a></li>
+      <li><a href="{{ url_for('hotel') }}">Hotel</a></li>
+      <li><a href="{{ url_for('billet') }}">Billet</a></li>
+      <li><a href="{{ url_for('hajj') }}" class="active">Hajj</a></li>
+      <li><a href="{{ url_for('omra') }}">Omra</a></li>
+      <li><a href="{{ url_for('autocar') }}">Autocar</a></li>
+      <li><a href="{{ url_for('bateau') }}">Bateau</a></li>
+      <li><a href="{{ url_for('traduction') }}">Traduction</a></li>
+      <li><a href="{{ url_for('assurance') }}">Assurance</a></li>
+      <li><a href="{{ url_for('voyage') }}">Voyages organisés</a></li>
+      <li><a href="{{ url_for('transfert') }}">Transfert</a></li>
+      <li><a href="{{ url_for('statistics') }}">Statistics</a></li>
+      <li><a href="{{ url_for('etudiant') }}">Etudiant</a></li>
 
-    <!-- Header/Navigation -->
-    <header class="navbar">
-        <a href="{{ url_for('index') }}" class="logo-link">
-            <img src="{{ url_for('static', filename='images/logo.jpeg') }}" alt="Rafa Logo" class="logo-img" width="150" height="50">
-        </a>
-        
-        <button class="toggle-button" aria-label="Toggle navigation">
-            <span class="bar"></span>
-            <span class="bar"></span>
-            <span class="bar"></span>
-        </button>
-        
-        <nav class="navbar-links">
-            <ul>
-                <li><a href="{{ url_for('index') }}">Home</a></li>
-                <li><a href="{{ url_for('create_profile') }}">Create</a></li>
-                <li><a href="{{ url_for('clients') }}">Clients</a></li>
-                <li><a href="#contact">Contact</a></li>
-                <li><button class="sidebar-toggle" id="sidebarToggle">Services</button></li>
-            </ul>
-        </nav>
-    </header>
+    </ul>
+  </div>
+  
+  <!-- Overlay -->
+  <div class="overlay" id="overlay"></div>
+
+  <!-- Header/Navigation -->
+  <header class="navbar">
+    <a href="{{ url_for('index') }}" class="logo-link">
+      <img src="{{ url_for('static', filename='images/logo.jpeg') }}" alt="Rafa Logo" class="logo-img" width="150" height="50">
+    </a>
+    
+    <button class="toggle-button" aria-label="Toggle navigation">
+      <span class="bar"></span>
+      <span class="bar"></span>
+      <span class="bar"></span>
+    </button>
+    
+    <nav class="navbar-links">
+      <ul>
+        <li><a href="{{ url_for('index') }}">Home</a></li>
+        <li><a href="{{ url_for('create_profile') }}">Create</a></li>
+        <li><a href="{{ url_for('clients') }}">Clients</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li><button class="sidebar-toggle" id="sidebarToggle">Services</button></li>
+      </ul>
+    </nav>
+  </header>
+
   <!-- Main Content -->
   <main id="main-content">
-    <!-- Hero Section -->
-    <section class="hero">
+    <section class="dashboard-section">
+      <div class="container">
+        <h2 class="section-title">Hajj Services Management</h2>
+        
+        <!-- Statistics Cards -->
+        <div class="stats-container">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Total Pilgrims</h3>
+              <p>{{ total_clients }}</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Completed</h3>
+              <p>{{ completed_clients }}</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Total Revenue</h3>
+              <p>{{ "%.2f"|format(total_revenue) }} DH</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-hand-holding-usd"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Amount Paid</h3>
+              <p>{{ "%.2f"|format(paid_amount) }} DH</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Search and Filter Section -->
+        <div class="search-filter-container">
+          <form method="get" class="search-form">
+            <div class="search-input-group">
+              <input type="text" name="search" placeholder="Search..." value="{{ search_query }}">
+              <select name="search_by">
+                <option value="name" {% if search_by == 'name' %}selected{% endif %}>By Name</option>
+                <option value="passport" {% if search_by == 'passport' %}selected{% endif %}>By Passport</option>
+                <option value="phone" {% if search_by == 'phone' %}selected{% endif %}>By Phone</option>
+                <option value="nationality" {% if search_by == 'nationality' %}selected{% endif %}>By Nationality</option>
+              </select>
+              <button type="submit" class="search-button">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </form>
+          
+          <div class="filter-toggle">
+            <label class="switch">
+              <input type="checkbox" id="completedToggle" {% if completed_filter %}checked{% endif %} 
+                onclick="window.location.href='{{ url_for('hajj', search=search_query, search_by=search_by, completed=not completed_filter) }}'">
+              <span class="slider round"></span>
+            </label>
+            <span>Show Completed</span>
+          </div>
+        </div>
+        
+        <!-- Clients Table -->
+        <div class="table-responsive">
+          <table class="client-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Pilgrim Name</th>
+                <th>Phone</th>
+                <th>Nationality</th>
+                <th>Passport</th>
+                <th>Departure Date</th>
+                <th>Return Date</th>
+                <th>Total Amount</th>
+                <th>Amount Paid</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for client in clients %}
+              <tr class="{% if client.service_completed %}completed{% endif %}" data-id="{{ client.id }}">
+                <td>{{ client.id }}</td>
+                <td>{{ client.first_name }} {{ client.last_name }}</td>
+                <td>{{ client.phone }}</td>
+                <td>{{ client.nationality }}</td>
+                <td>{{ client.passport or 'N/A' }}</td>
+                <td>{{ client.departure_date.strftime('%Y-%m-%d') if client.departure_date else 'N/A' }}</td>
+                <td>{{ client.arrival_date.strftime('%Y-%m-%d') if client.arrival_date else 'N/A' }}</td>
+                <td>{{ "%.2f"|format(client.total_amount) if client.total_amount else '0.00' }} DH</td>
+                <td>{{ "%.2f"|format(client.amount_paid) if client.amount_paid else '0.00' }} DH</td>
+                <td>
+                  {% if client.service_completed %}
+                    <span class="status-badge completed">Completed</span>
+                  {% else %}
+                    <span class="status-badge pending">Pending</span>
+                  {% endif %}
+                </td>
+                <td class="actions">
+                  <button class="edit-btn" onclick="openEditModal({{ client.id }})">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <a href="{{ url_for('delete_hajj_client', client_id=client.id) }}" class="delete-btn" onclick="return confirm('Are you sure you want to delete this pilgrim?');">
+                    <i class="fas fa-trash"></i>
+                  </a>
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="11" class="no-data">No Hajj pilgrims found</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </section>
+    
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <span class="close-btn" onclick="closeEditModal()">&times;</span>
+        <h3>Edit Hajj Pilgrim</h3>
+        <form id="editForm" method="POST">
+          <div class="form-group">
+            <label for="amount_paid">Amount Paid (DH)</label>
+            <input type="number" step="0.01" id="amount_paid" name="amount_paid" required>
+          </div>
+          <div class="form-group">
+            <label for="total_amount">Total Amount (DH)</label>
+            <input type="number" step="0.01" id="total_amount" name="total_amount" required>
+          </div>
+          <div class="form-group">
+            <label for="departure_date">Departure Date</label>
+            <input type="date" id="departure_date" name="departure_date">
+          </div>
+          <div class="form-group">
+            <label for="arrival_date">Return Date</label>
+            <input type="date" id="arrival_date" name="arrival_date">
+          </div>
+          <div class="form-group checkbox-group">
+            <input type="checkbox" id="service_completed" name="service_completed">
+            <label for="service_completed">Service Completed</label>
+          </div>
+          <button type="submit" class="submit-btn">Update Pilgrim</button>
+        </form>
+      </div>
+    </div>
   </main>
+
   <!-- Footer -->
   <footer id="contact">
     <div class="footer-content">
@@ -98,7 +258,7 @@
   </footer>
 
   <script>
-    // JavaScript remains the same as in your original template
+    // Toggle sidebar
     const toggleButton = document.querySelector('.toggle-button');
     const navbarLinks = document.querySelector('.navbar-links');
 
@@ -128,6 +288,38 @@
         overlay.classList.remove('active');
       }
     });
+
+    // Edit Modal functionality
+    const modal = document.getElementById('editModal');
+    let currentClientId = null;
+
+    function openEditModal(clientId) {
+      currentClientId = clientId;
+      const clientRow = document.querySelector(`tr[data-id="${clientId}"]`);
+      
+      if (clientRow) {
+        document.getElementById('amount_paid').value = parseFloat(clientRow.querySelector('td:nth-child(9)').textContent) || 0;
+        document.getElementById('total_amount').value = parseFloat(clientRow.querySelector('td:nth-child(8)').textContent) || 0;
+        document.getElementById('departure_date').value = clientRow.querySelector('td:nth-child(6)').textContent;
+        document.getElementById('arrival_date').value = clientRow.querySelector('td:nth-child(7)').textContent;
+        document.getElementById('service_completed').checked = clientRow.classList.contains('completed');
+      }
+      
+      const form = document.getElementById('editForm');
+      form.action = `/update_hajj_client/${clientId}`;
+      
+      modal.style.display = 'block';
+    }
+
+    function closeEditModal() {
+      modal.style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        closeEditModal();
+      }
+    }
   </script>
 </body>
 </html>
