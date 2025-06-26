@@ -5,39 +5,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/create.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <title>Rafa | Create Group</title>
     <style>
-        /* Additional styles for group page */
-        .add-member-btn {
-            background-color: black;
-            color: white;
-            border: none;
-            padding: 10px 15px;
+        /* Additional styles for search functionality */
+        .search-container {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .select2-container--default .select2-selection--multiple {
+            border: 1px solid #ced4da;
+            min-height: 42px;
+            padding: 5px;
+        }
+        
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background-color: #ffd700;
+            border: 1px solid #e6c200;
+            color: #000;
+            font-weight: 500;
+            padding: 2px 8px;
+        }
+        
+        .selected-members {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .selected-member {
+            background-color: #ffd700;
+            color: #000;
+            padding: 5px 10px;
             border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 10px 0;
             display: flex;
             align-items: center;
-            gap: 8px;
+            font-weight: 500;
         }
         
-        .add-member-btn:hover {
-            background-color: black;
+        .remove-selected {
+            margin-left: 8px;
+            cursor: pointer;
+            font-weight: bold;
         }
         
-        .member-card {
-            border: 1px solid #ddd;
+        #filePreview ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+        }
+        
+        #filePreview li {
+            padding: 5px;
+            background: #f5f5f5;
+            margin-bottom: 5px;
             border-radius: 4px;
-            padding: 15px;
-            margin-bottom: 15px;
-            position: relative;
-        }
-        
-        .member-title {
-            margin-top: 0;
-            color: #333;
         }
     </style>
 </head>
@@ -55,10 +81,10 @@
             <li><a href="{{ url_for('bateau') }}">Bateau</a></li>
             <li><a href="{{ url_for('traduction') }}">Traduction</a></li>
             <li><a href="{{ url_for('assurance') }}">Assurance</a></li>
-            <li><a href="{{ url_for('voyages') }}">Voyages organisés</a></li>
+            <li><a href="{{ url_for('voyage') }}">Voyages organisés</a></li>
             <li><a href="{{ url_for('transfert') }}">Transfert</a></li>
             <li><a href="{{ url_for('statistics') }}">Statistics</a></li>
-            <li><a href="{{ url_for('factures') }}">Factures</a></li>
+            <li><a href="{{ url_for('etudiant') }}">Etudiant</a></li>
         </ul>
     </div>
     
@@ -92,8 +118,8 @@
     <main id="main-content" class="profile-creation">
         <h1>Create Group Profile</h1>
         <div class="profile-type">
-            <a href="{{ url_for('create_profile') }}" class="profile-type-btn active" id="individual-btn">Individual</a>
-            <a href="{{ url_for('create_group') }}" class="profile-type-btn" id="group-btn">Group/Organization</a>
+            <a href="{{ url_for('create_profile') }}" class="profile-type-btn">Individual</a>
+            <a href="{{ url_for('create_group') }}" class="profile-type-btn active">Group/Organization</a>
         </div>
         <form id="group-form" method="POST" enctype="multipart/form-data">
             {{ form.hidden_tag() }}
@@ -101,7 +127,7 @@
             <!-- Group Information -->
             <div class="form-group">
                 {{ form.group_name.label(class="required-field") }}
-                {{ form.group_name(required=true) }}
+                {{ form.group_name(required=true, class="form-control") }}
                 {% if form.group_name.errors %}
                     <div class="errors">
                         {% for error in form.group_name.errors %}
@@ -113,19 +139,21 @@
             
             <!-- Group Members Section -->
             <h2>Group Members</h2>
-            <div id="members-container">
-                <!-- Member cards will be added here dynamically -->
-            </div>
             
-            <button type="button" id="addMemberBtn" class="add-member-btn">
-                <span style="font-size: 20px;">+</span> Add Member
-            </button>
+            <!-- Client Search -->
+            <div class="search-container">
+                <label>Search and Add Existing Clients</label>
+                <select id="clientSearch" class="client-search" multiple="multiple" style="width: 100%"></select>
+                <div class="selected-members" id="selectedMembers">
+                    <!-- Selected members will appear here -->
+                </div>
+            </div>
             
             <!-- Documents Upload -->
             <div class="form-group">
                 <label>Group Documents</label>
                 <div class="photo-upload">
-                    {{ form.group_documents(accept="image/*,.pdf,.doc,.docx") }}
+                    {{ form.group_documents(accept="image/*,.pdf,.doc,.docx", id="groupDocuments") }}
                     <p>Click to upload group documents</p>
                     <small>You can upload multiple files</small>
                     {% if form.group_documents.errors %}
@@ -136,139 +164,164 @@
                         </div>
                     {% endif %}
                 </div>
+                <div id="filePreview"></div>
             </div>
             
             <!-- Submit Button -->
             <button type="submit" class="submit-btn">Create Group</button>
         </form>
     </main>
+
     <!-- Footer -->
-  <footer id="contact">
-    <div class="footer-content">
-      <div class="footer-section">
-        <h3 class="o">Quick Links</h3>
-        <ul>
-          <li><a href="{{ url_for('index') }}">Home</a></li>
-          <li><a href="{{ url_for('create_profile') }}">Create Profile</a></li>
-          <li><a href="#services">Services</a></li>
-        </ul>
-      </div>
-      
-      <div class="footer-section">
-        <h3 class="o">Contact Us</h3>
-        <ul>
-          <li>Email: Rafavoyages@gmail.com</li>
-          <li>Phone: +212 650-212366</li>
-          <li>Address: 22 Imm Narjiss 1 Av Allal Ben Abdellah, Taza 35000</li>
-        </ul>
-      </div>
-      
-      <div class="footer-section">
-        <h3 class="o">Follow Us</h3>
-        <ul>
-          <li><a href="https://www.instagram.com/agencerafavoyages">Instagram</a></li>
-          <li><a href="#">LinkedIn</a></li>
-          <li><a href="https://www.facebook.com/almassaAgencyTravel">Facebook</a></li>
-        </ul>
-      </div>
-    </div>
-    
-    <div class="copyright">
-      <p>&copy; 2025 Rafa Platform. All rights reserved.</p>
-    </div>
-  </footer>
+    <footer id="contact">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3 class="o">Quick Links</h3>
+                <ul>
+                    <li><a href="{{ url_for('index') }}">Home</a></li>
+                    <li><a href="{{ url_for('create_profile') }}">Create Profile</a></li>
+                    <li><a href="#services">Services</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3 class="o">Contact Us</h3>
+                <ul>
+                    <li>Email: Rafavoyages@gmail.com</li>
+                    <li>Phone: +212 650-212366</li>
+                    <li>Address: 22 Imm Narjiss 1 Av Allal Ben Abdellah, Taza 35000</li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3 class="o">Follow Us</h3>
+                <ul>
+                    <li><a href="https://www.instagram.com/agencerafavoyages">Instagram</a></li>
+                    <li><a href="#">LinkedIn</a></li>
+                    <li><a href="https://www.facebook.com/almassaAgencyTravel">Facebook</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="copyright">
+            <p>&copy; 2025 Rafa Platform. All rights reserved.</p>
+        </div>
+    </footer>
 
     <!-- JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
-        // JavaScript remains the same as in your original template
-    const toggleButton = document.querySelector('.toggle-button');
-    const navbarLinks = document.querySelector('.navbar-links');
+        // Toggle sidebar
+        const toggleButton = document.querySelector('.toggle-button');
+        const navbarLinks = document.querySelector('.navbar-links');
 
-    toggleButton.addEventListener('click', () => {
-      navbarLinks.classList.toggle('active');
-      toggleButton.classList.toggle('active');
-    });
+        toggleButton.addEventListener('click', () => {
+            navbarLinks.classList.toggle('active');
+            toggleButton.classList.toggle('active');
+        });
 
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const servicesSidebar = document.getElementById('servicesSidebar');
-    const overlay = document.getElementById('overlay');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const servicesSidebar = document.getElementById('servicesSidebar');
+        const overlay = document.getElementById('overlay');
 
-    sidebarToggle.addEventListener('click', (e) => {
-      e.stopPropagation();
-      servicesSidebar.classList.toggle('active');
-      overlay.classList.toggle('active');
-    });
+        sidebarToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            servicesSidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        });
 
-    overlay.addEventListener('click', () => {
-      servicesSidebar.classList.remove('active');
-      overlay.classList.remove('active');
-    });
-    
-    document.addEventListener('click', (e) => {
-      if (!servicesSidebar.contains(e.target) && e.target !== sidebarToggle) {
-        servicesSidebar.classList.remove('active');
-        overlay.classList.remove('active');
-      }
-    });
-        document.addEventListener('DOMContentLoaded', function() {
-            // Mobile menu toggle
-            const toggleButton = document.querySelector('.toggle-button');
-            const navbarLinks = document.querySelector('.navbar-links');
+        overlay.addEventListener('click', () => {
+            servicesSidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!servicesSidebar.contains(e.target) && e.target !== sidebarToggle) {
+                servicesSidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            }
+        });
 
-            toggleButton.addEventListener('click', () => {
-                navbarLinks.classList.toggle('active');
-                toggleButton.classList.toggle('active');
-            });
-
-            // Documents upload click handler
-            const docUpload = document.querySelector('.photo-upload');
-            const docInput = document.getElementById('{{ form.group_documents.id }}');
-
-            docUpload.addEventListener('click', () => {
-                docInput.click();
-            });
-
-            docInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    const filesText = e.target.files.length === 1 
-                        ? e.target.files[0].name 
-                        : `${e.target.files.length} files selected`;
-                    docUpload.querySelector('p').textContent = filesText;
+        $(document).ready(function() {
+            // Initialize Select2 for client search
+            $('#clientSearch').select2({
+                placeholder: "Search clients by name or phone...",
+                width: '100%',
+                ajax: {
+                    url: '/search_clients',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function(params) {
+                        return {
+                            q: params.term
+                        };
+                    },
+                    processResults: function(data) {
+                        return {
+                            results: data.results || []
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 2,
+                templateResult: function(data) {
+                    if (data.loading) return data.text;
+                    return $('<span>').text(data.text);
+                },
+                templateSelection: function(data) {
+                    return data.text || data;
                 }
             });
 
-            // Member management
-            const membersContainer = document.getElementById('members-container');
-            const addMemberBtn = document.getElementById('addMemberBtn');
-            let memberCount = 0;
+            // Handle selection of clients
+            $('#clientSearch').on('select2:select', function(e) {
+                const data = e.params.data;
+                const selectedMembers = $('#selectedMembers');
+                
+                // Add hidden input for form submission
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: 'group_members[]',
+                    value: data.id
+                }).appendTo('#group-form');
+                
+                // Add visual representation
+                selectedMembers.append(`
+                    <div class="selected-member" data-id="${data.id}">
+                        ${data.text}
+                        <span class="remove-selected" onclick="removeSelectedMember(${data.id})">×</span>
+                    </div>
+                `);
+                
+                // Clear the selection
+                $(this).val(null).trigger('change');
+            });
 
-            addMemberBtn.addEventListener('click', () => {
-                memberCount++;
-                const memberCard = document.createElement('div');
-                memberCard.className = 'member-card';
-                memberCard.innerHTML = `
-                    <button type="button" class="remove-member" onclick="this.parentElement.remove()">×</button>
-                    <h3 class="member-title">Member ${memberCount}</h3>
-                    <div class="form-group">
-                        <label class="required-field">First Name</label>
-                        <input type="text" name="member_first_${memberCount}" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="required-field">Last Name</label>
-                        <input type="text" name="member_last_${memberCount}" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="required-field">Phone</label>
-                        <input type="text" name="member_phone_${memberCount}" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Passport Number</label>
-                        <input type="text" name="member_passport_${memberCount}">
-                    </div>
-                `;
-                membersContainer.appendChild(memberCard);
+            // Handle document upload preview
+            $('#groupDocuments').change(function() {
+                const filePreview = $('#filePreview');
+                filePreview.empty();
+                
+                if (this.files.length > 0) {
+                    const fileList = $('<ul></ul>');
+                    
+                    for (let i = 0; i < this.files.length; i++) {
+                        fileList.append(`<li>${this.files[i].name}</li>`);
+                    }
+                    
+                    filePreview.append(fileList);
+                }
             });
         });
+
+        function removeSelectedMember(id) {
+            // Remove the hidden input
+            $(`input[name="group_members[]"][value="${id}"]`).remove();
+            
+            // Remove the visual element
+            $(`.selected-member[data-id="${id}"]`).remove();
+        }
     </script>
 </body>
 </html>

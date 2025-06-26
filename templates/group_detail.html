@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ group.group_name }} | Rafa Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/group_detail.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Services Sidebar -->
+    <div class="services-sidebar" id="servicesSidebar">
+        <h3 style="color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 1rem;">Our Services</h3>
+        <ul class="services-list">
+            <li><a href="{{ url_for('visa') }}">Visa</a></li>
+            <li><a href="{{ url_for('hotel') }}">Hotel</a></li>
+            <li><a href="{{ url_for('billet') }}">Billet</a></li>
+            <li><a href="{{ url_for('hajj') }}">Hajj</a></li>
+            <li><a href="{{ url_for('omra') }}">Omra</a></li>
+            <li><a href="{{ url_for('autocar') }}">Autocar</a></li>
+            <li><a href="{{ url_for('bateau') }}">Bateau</a></li>
+            <li><a href="{{ url_for('traduction') }}">Traduction</a></li>
+            <li><a href="{{ url_for('assurance') }}">Assurance</a></li>
+            <li><a href="{{ url_for('voyage') }}">Voyages organisés</a></li>
+            <li><a href="{{ url_for('transfert') }}">Transfert</a></li>
+            <li><a href="{{ url_for('statistics') }}">Statistics</a></li>
+            <li><a href="{{ url_for('etudiant') }}">Etudiants</a></li>
+            <li><a href="{{ url_for('groups') }}" class="active">Groups</a></li>
+        </ul>
+    </div>
+    
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Header/Navigation -->
+    <header class="navbar">
+        <a href="{{ url_for('index') }}" class="logo-link">
+            <img src="{{ url_for('static', filename='images/logo.jpeg') }}" alt="Rafa Logo" class="logo-img" width="150" height="50">
+        </a>
+        
+        <button class="toggle-button" aria-label="Toggle navigation">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+        
+        <nav class="navbar-links">
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('create_profile') }}">Create</a></li>
+                <li><a href="{{ url_for('clients') }}">Clients</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><button class="sidebar-toggle" id="sidebarToggle">Services</button></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content">
+        <section class="group-detail-section">
+            <div class="back-link">
+                <a href="{{ url_for('groups') }}" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Groups
+                </a>
+            </div>
+            
+            <div class="group-header">
+                <div class="group-info">
+                    <h1>{{ group.group_name }}</h1>
+                    <div class="group-meta">
+                        <span class="created-date">
+                            <i class="far fa-calendar-alt"></i> 
+                            Created: {{ group.created_at.strftime('%d/%m/%Y') }}
+                        </span>
+                        <span class="member-count">
+                            <i class="fas fa-user-friends"></i> 
+                            {{ members|length }} members
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="group-actions">
+                    <button class="btn btn-primary" id="addMemberBtn">
+                        <i class="fas fa-user-plus"></i> Add Member
+                    </button>
+                    <a href="{{ url_for('delete_group', group_id=group.id) }}" 
+                       class="btn btn-danger" 
+                       onclick="return confirm('Are you sure you want to delete this group?')">
+                        <i class="fas fa-trash-alt"></i> Delete Group
+                    </a>
+                </div>
+            </div>
+            
+            <div class="group-content">
+                <div class="group-documents">
+                    <h2><i class="fas fa-file-alt"></i> Group Documents</h2>
+                    {% if group.documents_path %}
+                    <div class="document-preview">
+                        <iframe src="{{ url_for('static', filename='uploads/' + group.documents_path) }}" frameborder="0"></iframe>
+                        <a href="{{ url_for('static', filename='uploads/' + group.documents_path) }}" download class="download-btn">
+                            <i class="fas fa-download"></i> Download Documents
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="no-documents">
+                        <i class="fas fa-folder-open"></i>
+                        <p>No documents uploaded for this group</p>
+                        <form action="{{ url_for('update_group', group_id=group.id) }}" method="post" enctype="multipart/form-data">
+                            <div class="upload-document">
+                                <input type="file" name="group_documents" id="groupDocuments" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                                <button type="submit" class="btn btn-secondary">
+                                    <i class="fas fa-upload"></i> Upload Document
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="group-members">
+                    <h2><i class="fas fa-users"></i> Group Members</h2>
+                    
+                    {% if members %}
+                    <div class="members-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Phone</th>
+                                    <th>Passport</th>
+                                    <th>Profile</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for member_data in members %}
+                                <tr>
+                                    <td>{{ member_data.member.first_name }} {{ member_data.member.last_name }}</td>
+                                    <td>{{ member_data.member.phone }}</td>
+                                    <td>{{ member_data.member.passport if member_data.member.passport else 'N/A' }}</td>
+                                    <td>
+                                        {% if member_data.profile %}
+                                        <a href="{{ url_for('client_detail', client_id=member_data.profile.id) }}" class="profile-link">
+                                            <i class="fas fa-external-link-alt"></i> View Profile
+                                        </a>
+                                        {% else %}
+                                        <span class="no-profile">No profile</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('delete_group_member', member_id=member_data.member.id) }}" 
+                                           class="btn btn-danger btn-sm" 
+                                           onclick="return confirm('Are you sure you want to remove this member?')">
+                                            <i class="fas fa-user-minus"></i> Remove
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="no-members">
+                        <i class="fas fa-user-slash"></i>
+                        <p>No members in this group yet</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Add Member Form (hidden by default) -->
+                    <div class="add-member-form" id="addMemberForm" style="display: none;">
+                        <h3>Add New Member</h3>
+                        <form action="{{ url_for('add_group_member', group_id=group.id) }}" method="post">
+                            <div class="form-group">
+                                <label for="first_name">First Name</label>
+                                <input type="text" id="first_name" name="first_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="last_name">Last Name</label>
+                                <input type="text" id="last_name" name="last_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Phone</label>
+                                <input type="text" id="phone" name="phone" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="passport">Passport (Optional)</label>
+                                <input type="text" id="passport" name="passport">
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Save Member
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="cancelAddMember">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="{{ url_for('index') }}">Home</a></li>
+                    <li><a href="{{ url_for('create_profile') }}">Create Profile</a></li>
+                    <li><a href="#services">Services</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <ul>
+                    <li>Email: Rafavoyages@gmail.com</li>
+                    <li>Phone: +212 650-212366</li>
+                    <li>Address: 22 Imm Narjiss 1 Av Allal Ben Abdellah, Taza 35000</li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Follow Us</h3>
+                <ul>
+                    <li><a href="https://www.instagram.com/agencerafavoyages">Instagram</a></li>
+                    <li><a href="#">LinkedIn</a></li>
+                    <li><a href="https://www.facebook.com/almassaAgencyTravel">Facebook</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="copyright">
+            <p>&copy; 2025 Rafa Platform. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle add member form
+            const addMemberBtn = document.getElementById('addMemberBtn');
+            const addMemberForm = document.getElementById('addMemberForm');
+            const cancelAddMember = document.getElementById('cancelAddMember');
+            
+            if (addMemberBtn && addMemberForm) {
+                addMemberBtn.addEventListener('click', function() {
+                    addMemberForm.style.display = 'block';
+                    addMemberBtn.style.display = 'none';
+                });
+            }
+            
+            if (cancelAddMember && addMemberForm) {
+                cancelAddMember.addEventListener('click', function() {
+                    addMemberForm.style.display = 'none';
+                    addMemberBtn.style.display = 'block';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

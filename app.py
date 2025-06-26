@@ -155,6 +155,12 @@ class GroupProfile(db.Model):
     documents_path = db.Column(db.String(200))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class GroupForm(FlaskForm):
+    group_name = StringField('Group Name', validators=[InputRequired()])
+    group_documents = FileField('Group Documents')
+    class Meta:
+        csrf = False 
+
 class GroupMember(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     group_id = db.Column(db.Integer, db.ForeignKey('group_profile.id'), nullable=False)
@@ -1133,29 +1139,221 @@ def create_profile():
     
     return render_template('create_profile.html', form=form)
 
-@app.route('/group', methods=['GET', 'POST'])
+@app.route('/create_group', methods=['GET', 'POST'])
 def create_group():
     form = GroupForm()
-    if form.validate_on_submit():
-        documents_filename = save_file(form.group_documents.data) if form.group_documents.data else None
-        group = GroupProfile(
-            group_name=form.group_name.data,
-            documents_path=documents_filename
-        )
-        db.session.add(group)
-        db.session.commit()
-        flash('Group created successfully!', 'success')
-        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        try:
+            # Handle group creation
+            group_name = form.group_name.data
+            documents = form.group_documents.data
+            
+            # Save group
+            group = GroupProfile(
+                group_name=group_name,
+                documents_path=save_file(documents) if documents else None
+            )
+            db.session.add(group)
+            db.session.flush()  # Get the group ID
+            
+            # Handle selected members
+            member_ids = request.form.getlist('group_members[]')
+            for member_id in member_ids:
+                member = Profile.query.get(member_id)
+                if member:
+                    group_member = GroupMember(
+                        group_id=group.id,
+                        first_name=member.first_name,
+                        last_name=member.last_name,
+                        phone=member.phone,
+                        passport=member.passport
+                    )
+                    db.session.add(group_member)
+            
+            db.session.commit()
+            flash('Group created successfully!', 'success')
+            return redirect(url_for('clients'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error creating group: {str(e)}', 'danger')
     
     return render_template('create_group.html', form=form)
 
-def save_file(file):
-    if file:
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
-        return filename
-    return None
+@app.route('/search_clients')
+def search_clients():
+    search_term = request.args.get('q', '').strip()
+    
+    if not search_term:
+        return {'results': []}  # Return empty if no search term
+    
+    try:
+        # Search by name or phone number
+        clients = Profile.query.filter(
+            db.or_(
+                db.func.concat(Profile.first_name, ' ', Profile.last_name).ilike(f'%{search_term}%'),
+                Profile.phone.ilike(f'%{search_term}%')
+            )
+        ).limit(10).all()
+        
+        # Format results for Select2
+        results = [{
+            'id': client.id,
+            'text': f"{client.first_name} {client.last_name} - {client.phone}"
+        } for client in clients]
+        
+        return {'results': results}
+        
+    except Exception as e:
+        print(f"Search error: {str(e)}")
+        return {'results': []}
+    
+@app.route('/groups')
+def groups():
+    """Display all groups with search functionality"""
+    search_query = request.args.get('search', '').strip()
+    
+    # Start with base query
+    query = GroupProfile.query
+    
+    # Apply search filter if provided
+    if search_query:
+        query = query.filter(GroupProfile.group_name.ilike(f'%{search_query}%'))
+    
+    # Get groups ordered by creation date (newest first)
+    groups = query.order_by(GroupProfile.created_at.desc()).all()
+    
+    # Get member counts for each group
+    groups_with_counts = []
+    for group in groups:
+        member_count = db.session.query(GroupMember).filter_by(group_id=group.id).count()
+        groups_with_counts.append({
+            'group': group,
+            'member_count': member_count
+        })
+    
+    return render_template('groups.html', 
+                         groups=groups_with_counts, 
+                         search_query=search_query)
+
+@app.route('/delete_group/<int:group_id>')
+def delete_group(group_id):
+    """Delete a group and all its members"""
+    group = GroupProfile.query.get_or_404(group_id)
+    
+    try:
+        # Delete all members first
+        GroupMember.query.filter_by(group_id=group_id).delete()
+        
+        # Then delete the group
+        db.session.delete(group)
+        db.session.commit()
+        flash('Group deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting group: {str(e)}', 'danger')
+    
+    return redirect(url_for('groups'))
+
+@app.route('/group/<int:group_id>', methods=['GET', 'POST'])
+def group_detail(group_id):
+    group = GroupProfile.query.get_or_404(group_id)
+    members = GroupMember.query.filter_by(group_id=group_id).all()
+    
+    # Enrich member data with profile information if available
+    member_details = []
+    for member in members:
+        profile = Profile.query.filter(
+            db.and_(
+                Profile.first_name == member.first_name,
+                Profile.last_name == member.last_name,
+                Profile.phone == member.phone
+            )
+        ).first()
+        
+        member_details.append({
+            'member': member,
+            'profile': profile
+        })
+    
+    return render_template('group_detail.html', 
+                         group=group, 
+                         members=member_details)
+
+@app.route('/update_group/<int:group_id>', methods=['POST'])
+def update_group(group_id):
+    """Handle group updates"""
+    group = GroupProfile.query.get_or_404(group_id)
+    
+    try:
+        # Update group name from form data
+        if 'group_name' in request.form:
+            group.group_name = request.form['group_name']
+        
+        # Handle document upload if provided
+        if 'group_documents' in request.files:
+            file = request.files['group_documents']
+            if file.filename != '':
+                # Delete old document if exists
+                if group.documents_path:
+                    try:
+                        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], group.documents_path))
+                    except:
+                        pass
+                
+                # Save new document
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+                group.documents_path = filename
+        
+        db.session.commit()
+        flash('Group updated successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating group: {str(e)}', 'danger')
+    
+    return redirect(url_for('group_detail', group_id=group_id))
+
+@app.route('/add_group_member/<int:group_id>', methods=['POST'])
+def add_group_member(group_id):
+    """Add a new member to a group"""
+    group = GroupProfile.query.get_or_404(group_id)
+    
+    try:
+        # Create new group member from form data
+        member = GroupMember(
+            group_id=group_id,
+            first_name=request.form['first_name'],
+            last_name=request.form['last_name'],
+            phone=request.form['phone'],
+            passport=request.form.get('passport', '')  # Optional field
+        )
+        
+        db.session.add(member)
+        db.session.commit()
+        flash('Member added successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error adding member: {str(e)}', 'danger')
+    
+    return redirect(url_for('group_detail', group_id=group_id))
+
+@app.route('/delete_group_member/<int:member_id>')
+def delete_group_member(member_id):
+    """Remove a member from a group"""
+    member = GroupMember.query.get_or_404(member_id)
+    group_id = member.group_id  # Remember group_id before deletion
+    
+    try:
+        db.session.delete(member)
+        db.session.commit()
+        flash('Member removed successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error removing member: {str(e)}', 'danger')
+    
+    return redirect(url_for('group_detail', group_id=group_id))
 
 if __name__ == '__main__':
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
