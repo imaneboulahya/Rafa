@@ -249,6 +249,38 @@
                     </div>
                 </div>
             </div>
+            <!-- Assurance Fields -->
+<div id="assurance-fields" class="service-specific-fields" style="display: none;">
+    <h3>Assurance Details</h3>
+    <div class="form-group">
+        {{ form.assurance_type.label() }}
+        {{ form.assurance_type() }}
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            {{ form.assurance_company.label() }}
+            {{ form.assurance_company() }}
+        </div>
+        <div class="form-group">
+            {{ form.policy_number.label() }}
+            {{ form.policy_number() }}
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            {{ form.assurance_start_date.label() }}
+            {{ form.assurance_start_date() }}
+        </div>
+        <div class="form-group">
+            {{ form.assurance_end_date.label() }}
+            {{ form.assurance_end_date() }}
+        </div>
+    </div>
+    <div class="form-group">
+        {{ form.coverage_details.label() }}
+        {{ form.coverage_details() }}
+    </div>
+</div>
             
             <div class="form-group">
                 <label>Profile Photo</label>
@@ -368,29 +400,34 @@
             const bateauFields = document.getElementById('bateau-fields');
 
             function updateServiceFields() {
-                // Hide all specific fields first
-                customServiceInput.style.display = 'none';
-                customServiceInput.required = false;
-                if (autocarFields) autocarFields.style.display = 'none';
-                if (bateauFields) bateauFields.style.display = 'none';
+    // Hide all specific fields first
+    customServiceInput.style.display = 'none';
+    customServiceInput.required = false;
+    if (autocarFields) autocarFields.style.display = 'none';
+    if (bateauFields) bateauFields.style.display = 'none';
+    if (document.getElementById('assurance-fields')) document.getElementById('assurance-fields').style.display = 'none';
+    if (document.getElementById('traduction-fields')) document.getElementById('traduction-fields').style.display = 'none';
 
-                // Show relevant fields based on selection
-                switch(serviceTypeSelect.value) {
-                    case 'autocar':
-                        if (autocarFields) autocarFields.style.display = 'block';
-                        break;
-                    case 'bateau':
-                        if (bateauFields) bateauFields.style.display = 'block';
-                        break;
-                    case 'other':
-                        customServiceInput.style.display = 'block';
-                        customServiceInput.required = true;
-                        break;
-                    case 'traduction':
-                        document.getElementById('traduction-fields').style.display = 'block';
-                    break;
-                }
-            }
+    // Show relevant fields based on selection
+    switch(serviceTypeSelect.value) {
+        case 'autocar':
+            if (autocarFields) autocarFields.style.display = 'block';
+            break;
+        case 'bateau':
+            if (bateauFields) bateauFields.style.display = 'block';
+            break;
+        case 'assurance':
+            if (document.getElementById('assurance-fields')) document.getElementById('assurance-fields').style.display = 'block';
+            break;
+        case 'traduction':
+            if (document.getElementById('traduction-fields')) document.getElementById('traduction-fields').style.display = 'block';
+            break;
+        case 'other':
+            customServiceInput.style.display = 'block';
+            customServiceInput.required = true;
+            break;
+    }
+}
 
             // Initialize on page load
             updateServiceFields();

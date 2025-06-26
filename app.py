@@ -51,6 +51,12 @@ class Profile(db.Model):
     departure_date_bateau = db.Column(db.Date)
     arrival_date_bateau = db.Column(db.Date)
     cabin_number = db.Column(db.String(20))
+    assurance_type = db.Column(db.String(50))  # 'schengen' ou 'monde'
+    assurance_company = db.Column(db.String(100))
+    policy_number = db.Column(db.String(50))
+    start_date = db.Column(db.Date)
+    end_date = db.Column(db.Date)
+    coverage_details = db.Column(db.Text)
 
 class HotelBooking(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -95,6 +101,7 @@ class ProfileForm(FlaskForm):
         ('autocar', 'Autocar'),
         ('bateau', 'Bateau'),
         ('traduction', 'Traduction'),
+        ('assurance', 'Assurance'),
         ('other', 'Other (Please specify)')
     ], validators=[InputRequired()])
     custom_service = StringField('Custom Service')
@@ -129,6 +136,16 @@ class ProfileForm(FlaskForm):
     departure_date_bateau = DateField('Departure Date', format='%Y-%m-%d', validators=[Optional()])
     arrival_date_bateau = DateField('Arrival Date', format='%Y-%m-%d', validators=[Optional()])
     cabin_number = StringField('Cabin/Seat Number', validators=[Optional()])
+    assurance_type = SelectField('Assurance Type', choices=[
+        ('', 'Select Type'),
+        ('schengen', 'Assurance Schengen'),
+        ('monde', 'Assurance Monde')
+    ], validators=[Optional()])
+    assurance_company = StringField('Insurance Company', validators=[Optional()])
+    policy_number = StringField('Policy Number', validators=[Optional()])
+    assurance_start_date = DateField('Start Date', format='%Y-%m-%d', validators=[Optional()])
+    assurance_end_date = DateField('End Date', format='%Y-%m-%d', validators=[Optional()])
+    coverage_details = StringField('Coverage Details', validators=[Optional()])
 
 
 class GroupForm(FlaskForm):
@@ -681,7 +698,27 @@ def delete_traduction_client(client_id):
 
 @app.route('/assurance')
 def assurance():
-    return render_template('assurance.html')
+    search_query = request.args.get('search', '').strip()
+    search_by = request.args.get('search_by', 'name')
+    
+    query = Profile.query.filter_by(service_type='assurance')
+    
+    if search_query:
+        if search_by == 'name':
+            query = query.filter(db.or_(
+                Profile.first_name.ilike(f'%{search_query}%'),
+                Profile.last_name.ilike(f'%{search_query}%')
+            ))
+        elif search_by == 'policy':
+            query = query.filter(Profile.policy_number.ilike(f'%{search_query}%'))
+        elif search_by == 'company':
+            query = query.filter(Profile.assurance_company.ilike(f'%{search_query}%'))
+    
+    clients = query.order_by(Profile.service_completed, Profile.start_date).all()
+    return render_template('assurance.html', 
+                         clients=clients,
+                         search_query=search_query,
+                         search_by=search_by)
 
 @app.route('/voyages')
 def voyages():
@@ -725,6 +762,16 @@ def create_profile():
                 'service_completed': False,
                 'created_at': datetime.utcnow()
             }
+            
+            if form.service_type.data == 'assurance':
+                profile_data.update({
+                    'assurance_type': form.assurance_type.data,
+                    'assurance_company': form.assurance_company.data,
+                    'policy_number': form.policy_number.data,
+                    'start_date': form.assurance_start_date.data,
+                    'end_date': form.assurance_end_date.data,
+                    'coverage_details': form.coverage_details.data
+                })
             
             # Handle autocar specific fields
             if form.service_type.data == 'autocar':
