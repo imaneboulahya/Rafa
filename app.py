@@ -62,6 +62,8 @@ class Profile(db.Model):
     voyage_date_retour = db.Column(db.Date)
     voyage_prix = db.Column(db.Float)
     voyage_statut = db.Column(db.String(20))
+    university_name = db.Column(db.String(100))
+    study_field = db.Column(db.String(100))
 
 # Forms
 class ProfileForm(FlaskForm):
@@ -84,6 +86,7 @@ class ProfileForm(FlaskForm):
         ('assurance', 'Assurance'),
         ('transfert', 'Transfert'),
         ('voyage', 'Voyage'),
+        ('etudiant', 'Etudiant'),
         ('other', 'Other (Please specify)')
     ], validators=[InputRequired()])
     custom_service = StringField('Custom Service')
@@ -845,7 +848,63 @@ def statistics():
 
 @app.route('/etudiant')
 def etudiant():
-    return render_template('etudiant.html')
+    search_query = request.args.get('search', '').strip()
+    search_by = request.args.get('search_by', 'name')
+    query = Profile.query.filter_by(service_type='etudiant')
+    
+    if search_query:
+        if search_by == 'name':
+            query = query.filter(db.or_(
+                Profile.first_name.ilike(f'%{search_query}%'),
+                Profile.last_name.ilike(f'%{search_query}%')
+            ))
+        elif search_by == 'passport':
+            query = query.filter(Profile.passport.ilike(f'%{search_query}%'))
+        elif search_by == 'phone':
+            query = query.filter(Profile.phone.ilike(f'%{search_query}%'))
+        elif search_by == 'nationality':
+            query = query.filter(Profile.nationality.ilike(f'%{search_query}%'))
+        elif search_by == 'university':
+            query = query.filter(Profile.university_name.ilike(f'%{search_query}%'))
+    
+    clients = query.order_by(Profile.service_completed, Profile.created_at.desc()).all()
+    return render_template('etudiant.html', 
+                         clients=clients, 
+                         search_query=search_query, 
+                         search_by=search_by)
+
+@app.route('/update_etudiant_client/<int:client_id>', methods=['POST'])
+def update_etudiant_client(client_id):
+    client = Profile.query.get_or_404(client_id)
+    
+    try:
+        client.amount_paid = float(request.form.get('amount_paid', 0))
+        client.total_amount = float(request.form.get('total_amount', 0))
+        client.university_name = request.form.get('university_name', '')
+        client.study_field = request.form.get('study_field', '')
+        client.service_completed = 'service_completed' in request.form
+        
+        db.session.commit()
+        flash('Student client updated successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating student client: {str(e)}', 'danger')
+    
+    return redirect(url_for('etudiant'))
+
+@app.route('/delete_etudiant_client/<int:client_id>')
+def delete_etudiant_client(client_id):
+    client = Profile.query.get_or_404(client_id)
+    
+    try:
+        db.session.delete(client)
+        db.session.commit()
+        flash('Student client deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting student client: {str(e)}', 'danger')
+    
+    return redirect(url_for('etudiant'))
 
 @app.route('/create', methods=['GET', 'POST'])
 def create_profile():

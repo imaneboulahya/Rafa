@@ -401,52 +401,26 @@
 
             // Improved version of the service fields visibility function
 function updateServiceFields() {
-    // Safely get all possible service fields
-    const serviceFields = {
-        custom: customServiceInput,
-        autocar: document.getElementById('autocar-fields'),
-        bateau: document.getElementById('bateau-fields'),
-        assurance: document.getElementById('assurance-fields'),
-        traduction: document.getElementById('traduction-fields'),
-        transfert: document.getElementById('transfert-fields')
-    };
-
     // Hide all fields first
-    Object.values(serviceFields).forEach(field => {
-        if (field) {
-            field.style.display = 'none';
-            // Remove required attribute when hidden
-            const inputs = field.querySelectorAll('[required]');
-            inputs.forEach(input => input.removeAttribute('required'));
-        }
+    document.querySelectorAll('.service-specific-fields').forEach(field => {
+        field.style.display = 'none';
     });
 
     // Show relevant fields based on selection
-    switch(serviceTypeSelect.value) {
-        case 'autocar':
-            if (serviceFields.autocar) {
-                serviceFields.autocar.style.display = 'block';
-                // Add required to necessary fields if needed
-            }
-            break;
-        case 'bateau':
-            if (serviceFields.bateau) serviceFields.bateau.style.display = 'block';
-            break;
-        case 'assurance':
-            if (serviceFields.assurance) serviceFields.assurance.style.display = 'block';
-            break;
-        case 'transfert':
-            if (serviceFields.transfert) serviceFields.transfert.style.display = 'block';
-            break;
-        case 'traduction':
-            if (serviceFields.traduction) serviceFields.traduction.style.display = 'block';
-            break;
-        case 'other':
-            if (serviceFields.custom) {
-                serviceFields.custom.style.display = 'block';
-                serviceFields.custom.required = true;
-            }
-            break;
+    const serviceType = document.getElementById('{{ form.service_type.id }}').value;
+    
+    if (serviceType === 'autocar') {
+        document.getElementById('autocar-fields').style.display = 'block';
+    } else if (serviceType === 'bateau') {
+        document.getElementById('bateau-fields').style.display = 'block';
+    } else if (serviceType === 'assurance') {
+        document.getElementById('assurance-fields').style.display = 'block';
+    } else if (serviceType === 'traduction') {
+        document.getElementById('traduction-fields').style.display = 'block';
+    } else if (serviceType === 'etudiant') {  // Add this condition
+        document.getElementById('etudiant-fields').style.display = 'block';
+    } else if (serviceType === 'other') {
+        document.getElementById('{{ form.custom_service.id }}').style.display = 'block';
     }
 }
 
