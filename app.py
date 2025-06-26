@@ -64,6 +64,12 @@ class Profile(db.Model):
     voyage_statut = db.Column(db.String(20))
     university_name = db.Column(db.String(100))
     study_field = db.Column(db.String(100))
+    service_type = db.Column(db.String(50), nullable=False)  # will be 'omra' for Omra clients
+    departure_date = db.Column(db.Date)  # used for Omra departure
+    arrival_date = db.Column(db.Date)    # used for Omra return
+    amount_paid = db.Column(db.Float, default=0.0)
+    total_amount = db.Column(db.Float, default=0.0)
+    service_completed = db.Column(db.Boolean, default=False)
 
 # Forms
 class ProfileForm(FlaskForm):
@@ -496,7 +502,84 @@ def hajj():
 
 @app.route('/omra')
 def omra():
-    return render_template('omra.html')
+    search_query = request.args.get('search', '').strip()
+    search_by = request.args.get('search_by', 'name')
+    completed_filter = request.args.get('completed', 'false') == 'true'
+    
+    query = Profile.query.filter_by(service_type='omra')
+    
+    if not completed_filter:
+        query = query.filter(Profile.service_completed == False)
+    
+    if search_query:
+        if search_by == 'name':
+            query = query.filter(db.or_(
+                Profile.first_name.ilike(f'%{search_query}%'),
+                Profile.last_name.ilike(f'%{search_query}%')
+            ))
+        elif search_by == 'passport':
+            query = query.filter(Profile.passport.ilike(f'%{search_query}%'))
+        elif search_by == 'phone':
+            query = query.filter(Profile.phone.ilike(f'%{search_query}%'))
+        elif search_by == 'nationality':
+            query = query.filter(Profile.nationality.ilike(f'%{search_query}%'))
+    
+    omra_clients = query.order_by(Profile.created_at.desc()).all()
+    
+    # Calculate statistics
+    total_clients = len(omra_clients)
+    completed_clients = len([c for c in omra_clients if c.service_completed])
+    total_revenue = sum(c.total_amount for c in omra_clients if c.total_amount)
+    paid_amount = sum(c.amount_paid for c in omra_clients if c.amount_paid)
+    
+    return render_template(
+        'omra.html',
+        clients=omra_clients,
+        search_query=search_query,
+        search_by=search_by,
+        completed_filter=completed_filter,
+        total_clients=total_clients,
+        completed_clients=completed_clients,
+        total_revenue=total_revenue,
+        paid_amount=paid_amount
+    )
+
+@app.route('/update_omra_client/<int:client_id>', methods=['POST'])
+def update_omra_client(client_id):
+    client = Profile.query.get_or_404(client_id)
+    
+    try:
+        client.amount_paid = float(request.form.get('amount_paid', 0))
+        client.total_amount = float(request.form.get('total_amount', 0))
+        client.service_completed = 'service_completed' in request.form
+        
+        # Handle Omra specific dates if needed
+        if 'departure_date' in request.form and request.form['departure_date']:
+            client.departure_date = datetime.strptime(request.form['departure_date'], '%Y-%m-%d')
+        if 'arrival_date' in request.form and request.form['arrival_date']:
+            client.arrival_date = datetime.strptime(request.form['arrival_date'], '%Y-%m-%d')
+        
+        db.session.commit()
+        flash('Omra client updated successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating Omra client: {str(e)}', 'danger')
+    
+    return redirect(url_for('omra'))
+
+@app.route('/delete_omra_client/<int:client_id>')
+def delete_omra_client(client_id):
+    client = Profile.query.get_or_404(client_id)
+    
+    try:
+        db.session.delete(client)
+        db.session.commit()
+        flash('Omra client deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting Omra client: {str(e)}', 'danger')
+    
+    return redirect(url_for('omra'))
 
 @app.route('/autocar')
 def autocar():
