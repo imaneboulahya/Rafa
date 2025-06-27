@@ -53,7 +53,8 @@
                 <li><a href="{{ url_for('index') }}">Home</a></li>
                 <li><a href="{{ url_for('create_profile') }}">Create</a></li>
                 <li><a href="{{ url_for('clients') }}">Clients</a></li>
-                <li><a href="#contact">Contact</a></li>
+                <li><a href="{{ url_for('groups') }}">Groups</a></li>
+                <li><a href="{{ url_for('statistics') }}">Statistics</a></li>
                 <li><button class="sidebar-toggle" id="sidebarToggle">Services</button></li>
             </ul>
         </nav>
@@ -92,23 +93,91 @@
                 </div>
                 
                 <!-- Revenue Stats -->
-                <div class="stat-card">
+                 <div class="stat-card">
                     <h2><i class="fas fa-money-bill-wave"></i> Revenue</h2>
+                    <div class="revenue-filter">
+                        <button class="filter-btn active" data-period="day">Today</button>
+                        <button class="filter-btn" data-period="week">This Week</button>
+                        <button class="filter-btn" data-period="month">This Month</button>
+                    </div>
                     <div class="revenue-stats">
                         <div class="revenue-item total">
                             <span class="revenue-label">Total:</span>
-                            <span class="revenue-value">{{ "%.2f"|format(revenue_stats['total']) }} DH</span>
+                            <span class="revenue-value" id="total-revenue">{{ "%.2f"|format(revenue_stats['total']) }} DH</span>
                         </div>
                         <div class="revenue-item paid">
                             <span class="revenue-label">Paid:</span>
-                            <span class="revenue-value">{{ "%.2f"|format(revenue_stats['paid']) }} DH</span>
+                            <span class="revenue-value" id="paid-revenue">{{ "%.2f"|format(revenue_stats['paid']) }} DH</span>
                         </div>
                         <div class="revenue-item pending">
                             <span class="revenue-label">Pending:</span>
-                            <span class="revenue-value">{{ "%.2f"|format(revenue_stats['pending']) }} DH</span>
+                            <span class="revenue-value" id="pending-revenue">{{ "%.2f"|format(revenue_stats['pending']) }} DH</span>
                         </div>
                     </div>
                 </div>
+
+    <!-- [Le reste de votre code existant reste inchangé] -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // [Vos autres scripts existants...]
+
+            // Revenue Filter Functionality
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    const period = this.getAttribute('data-period');
+                    
+                    // Fetch revenue data for the selected period
+                    fetch(`/api/revenue?period=${period}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            document.getElementById('total-revenue').textContent = data.total.toFixed(2) + ' DH';
+                            document.getElementById('paid-revenue').textContent = data.paid.toFixed(2) + ' DH';
+                            document.getElementById('pending-revenue').textContent = data.pending.toFixed(2) + ' DH';
+                        })
+                        .catch(error => {
+                            console.error('Error fetching revenue data:', error);
+                        });
+                });
+            });
+        });
+    </script>
+
+    <!-- Ajoutez ce CSS à votre fichier statistics.css -->
+    <style>
+        .revenue-filter {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .filter-btn {
+            padding: 0.3rem 0.6rem;
+            border: none;
+            border-radius: 4px;
+            background-color: #f0f0f0;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-btn.active {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .filter-btn:hover:not(.active) {
+            background-color: #e0e0e0;
+        }
+    </style>
                 
                 <!-- Service Distribution -->
                 <div class="stat-card full-width">
