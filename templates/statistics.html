@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rafa Platform - Premium Travel Services</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics | Rafa Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/statistics.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <!-- Services Sidebar -->
+    <!-- Services Sidebar -->
     <div class="services-sidebar" id="servicesSidebar">
         <h3 style="color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 1rem;">Our Services</h3>
         <ul class="services-list">
@@ -23,11 +26,10 @@
             <li><a href="{{ url_for('bateau') }}">Bateau</a></li>
             <li><a href="{{ url_for('traduction') }}">Traduction</a></li>
             <li><a href="{{ url_for('assurance') }}">Assurance</a></li>
-            <li><a href="{{ url_for('voyages') }}">Voyages organisés</a></li>
+            <li><a href="{{ url_for('voyage') }}">Voyages organisés</a></li>
             <li><a href="{{ url_for('transfert') }}">Transfert</a></li>
             <li><a href="{{ url_for('statistics') }}">Statistics</a></li>
-            <li><a href="{{ url_for('factures') }}">Factures</a></li>
-            <li><a href="#">Autre</a></li>
+            <li><a href="{{ url_for('etudiant') }}">Etudiants</a></li>
         </ul>
     </div>
     
@@ -56,79 +58,351 @@
             </ul>
         </nav>
     </header>
-  <!-- Main Content -->
-  <main id="main-content">
-    <!-- Hero Section -->
-    <section class="hero">
-    </section>
-  </main>
-  <!-- Footer -->
-  <footer id="contact">
-    <div class="footer-content">
-      <div class="footer-section">
-        <h3 class="o">Quick Links</h3>
-        <ul>
-          <li><a href="{{ url_for('index') }}">Home</a></li>
-          <li><a href="{{ url_for('create_profile') }}">Create Profile</a></li>
-          <li><a href="#services">Services</a></li>
-        </ul>
-      </div>
+
+    <!-- Main Content -->
+    <main id="main-content">
+        <section class="statistics-section">
+            <h1><i class="fas fa-chart-line"></i> Annual Statistics - {{ current_year }}</h1>
+            
+            <div class="statistics-grid">
+                <!-- Client Growth Chart -->
+                <div class="stat-card full-width">
+                    <h2><i class="fas fa-users"></i> Client Growth</h2>
+                    <canvas id="clientGrowthChart"></canvas>
+                </div>
+                
+                <!-- Completion Rate -->
+                <div class="stat-card">
+                    <h2><i class="fas fa-check-circle"></i> Completion Rate</h2>
+                    <div class="completion-circle">
+                        <div class="circle-progress" data-value="{{ completion_rate }}">
+                            <span class="progress-value">{{ completion_rate }}%</span>
+                        </div>
+                        <div class="completion-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Completed:</span>
+                                <span class="stat-value">{{ completed_clients }}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">In Progress:</span>
+                                <span class="stat-value">{{ total_clients - completed_clients }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Revenue Stats -->
+                <div class="stat-card">
+                    <h2><i class="fas fa-money-bill-wave"></i> Revenue</h2>
+                    <div class="revenue-stats">
+                        <div class="revenue-item total">
+                            <span class="revenue-label">Total:</span>
+                            <span class="revenue-value">{{ "%.2f"|format(revenue_stats['total']) }} DH</span>
+                        </div>
+                        <div class="revenue-item paid">
+                            <span class="revenue-label">Paid:</span>
+                            <span class="revenue-value">{{ "%.2f"|format(revenue_stats['paid']) }} DH</span>
+                        </div>
+                        <div class="revenue-item pending">
+                            <span class="revenue-label">Pending:</span>
+                            <span class="revenue-value">{{ "%.2f"|format(revenue_stats['pending']) }} DH</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Service Distribution -->
+                <div class="stat-card full-width">
+                    <h2><i class="fas fa-concierge-bell"></i> Service Distribution</h2>
+                    <canvas id="serviceDistributionChart"></canvas>
+                </div>
+                
+                <!-- Top Services -->
+                <div class="stat-card">
+                    <h2><i class="fas fa-star"></i> Top Services</h2>
+                    <ul class="top-services-list">
+                        {% for service, count in top_services %}
+                        <li>
+                            <span class="service-name">{{ service|capitalize }}</span>
+                            <span class="service-count">{{ count }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <!-- Recent Activity -->
+                <div class="stat-card">
+                    <h2><i class="fas fa-history"></i> Recent Activity</h2>
+                    <div class="recent-activity">
+                        {% for client in recent_clients %}
+                        <div class="activity-item">
+                            <span class="client-name">{{ client.first_name }} {{ client.last_name }}</span>
+                            <span class="activity-details">
+                                {{ client.service_type|capitalize }} - 
+                                {{ client.created_at.strftime('%b %d') }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="{{ url_for('index') }}">Home</a></li>
+                    <li><a href="{{ url_for('create_profile') }}">Create Profile</a></li>
+                    <li><a href="#services">Services</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <ul>
+                    <li>Email: Rafavoyages@gmail.com</li>
+                    <li>Phone: +212 650-212366</li>
+                    <li>Address: 22 Imm Narjiss 1 Av Allal Ben Abdellah, Taza 35000</li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Follow Us</h3>
+                <ul>
+                    <li><a href="https://www.instagram.com/agencerafavoyages">Instagram</a></li>
+                    <li><a href="#">LinkedIn</a></li>
+                    <li><a href="https://www.facebook.com/almassaAgencyTravel">Facebook</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="copyright">
+            <p>&copy; 2025 Rafa Platform. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Client Growth Chart
+            const growthCtx = document.getElementById('clientGrowthChart').getContext('2d');
+            const growthChart = new Chart(growthCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'New Clients',
+                        data: {{ monthly_data|tojson }},
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Monthly Client Growth'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Service Distribution Chart
+            const serviceCtx = document.getElementById('serviceDistributionChart').getContext('2d');
+            const serviceChart = new Chart(serviceCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: {{ service_distribution|map(attribute='service_type')|list|tojson }},
+                    datasets: [{
+                        data: {{ service_distribution|map(attribute='count')|list|tojson }},
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(153, 102, 255, 0.7)',
+                            'rgba(255, 159, 64, 0.7)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Service Type Distribution'
+                        }
+                    }
+                }
+            });
+            
+            // Completion circle animation
+            const progressValue = document.querySelector('.progress-value');
+            const progressCircle = document.querySelector('.circle-progress');
+            const radius = progressCircle.r.baseVal.value;
+            const circumference = 2 * Math.PI * radius;
+            const completionValue = parseFloat(progressValue.textContent);
+            
+            progressCircle.style.strokeDasharray = circumference;
+            progressCircle.style.strokeDashoffset = circumference - (completionValue / 100) * circumference;
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+      // Sidebar toggle functionality
+      const sidebarToggle = document.getElementById('sidebarToggle');
+      const servicesSidebar = document.getElementById('servicesSidebar');
+      const overlay = document.getElementById('overlay');
+      const body = document.body;
       
-      <div class="footer-section">
-        <h3 class="o">Contact Us</h3>
-        <ul>
-          <li>Email: Rafavoyages@gmail.com</li>
-          <li>Phone: +212 650-212366</li>
-          <li>Address: 22 Imm Narjiss 1 Av Allal Ben Abdellah, Taza 35000</li>
-        </ul>
-      </div>
-      
-      <div class="footer-section">
-        <h3 class="o">Follow Us</h3>
-        <ul>
-          <li><a href="https://www.instagram.com/agencerafavoyages">Instagram</a></li>
-          <li><a href="#">LinkedIn</a></li>
-          <li><a href="https://www.facebook.com/almassaAgencyTravel">Facebook</a></li>
-        </ul>
-      </div>
-    </div>
-    
-    <div class="copyright">
-      <p>&copy; 2025 Rafa Platform. All rights reserved.</p>
-    </div>
-  </footer>
-
-  <script>
-    // JavaScript remains the same as in your original template
-    const toggleButton = document.querySelector('.toggle-button');
-    const navbarLinks = document.querySelector('.navbar-links');
-
-    toggleButton.addEventListener('click', () => {
-      navbarLinks.classList.toggle('active');
-      toggleButton.classList.toggle('active');
-    });
-
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const servicesSidebar = document.getElementById('servicesSidebar');
-    const overlay = document.getElementById('overlay');
-
-    sidebarToggle.addEventListener('click', (e) => {
-      e.stopPropagation();
-      servicesSidebar.classList.toggle('active');
-      overlay.classList.toggle('active');
-    });
-
-    overlay.addEventListener('click', () => {
-      servicesSidebar.classList.remove('active');
-      overlay.classList.remove('active');
-    });
-    
-    document.addEventListener('click', (e) => {
-      if (!servicesSidebar.contains(e.target) && e.target !== sidebarToggle) {
-        servicesSidebar.classList.remove('active');
-        overlay.classList.remove('active');
+      function toggleSidebar() {
+        servicesSidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+        body.classList.toggle('no-scroll');
       }
+      
+      if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', toggleSidebar);
+      }
+      
+      if (overlay) {
+        overlay.addEventListener('click', toggleSidebar);
+      }
+      
+      // Close sidebar when clicking outside on mobile
+      document.addEventListener('click', function(event) {
+        if (window.innerWidth <= 991 && 
+            servicesSidebar && 
+            !servicesSidebar.contains(event.target) && 
+            sidebarToggle && 
+            !sidebarToggle.contains(event.target) &&
+            servicesSidebar.classList.contains('active')) {
+          toggleSidebar();
+        }
+      });
+      
+      // Responsive behavior for sidebar
+      window.addEventListener('resize', function() {
+        if (window.innerWidth > 991 && servicesSidebar) {
+          servicesSidebar.classList.remove('active');
+          if (overlay) overlay.classList.remove('active');
+          body.classList.remove('no-scroll');
+        }
+      });
+    });document.addEventListener('DOMContentLoaded', function() {
+      // Sidebar toggle functionality
+      const sidebarToggle = document.getElementById('sidebarToggle');
+      const servicesSidebar = document.getElementById('servicesSidebar');
+      const overlay = document.getElementById('overlay');
+      const body = document.body;
+      
+      function toggleSidebar() {
+        servicesSidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+        body.classList.toggle('no-scroll');
+      }
+      
+      if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', toggleSidebar);
+      }
+      
+      if (overlay) {
+        overlay.addEventListener('click', toggleSidebar);
+      }
+      
+      // Close sidebar when clicking outside on mobile
+      document.addEventListener('click', function(event) {
+        if (window.innerWidth <= 991 && 
+            servicesSidebar && 
+            !servicesSidebar.contains(event.target) && 
+            sidebarToggle && 
+            !sidebarToggle.contains(event.target) &&
+            servicesSidebar.classList.contains('active')) {
+          toggleSidebar();
+        }
+      });
+      
+      // Responsive behavior for sidebar
+      window.addEventListener('resize', function() {
+        if (window.innerWidth > 991 && servicesSidebar) {
+          servicesSidebar.classList.remove('active');
+          if (overlay) overlay.classList.remove('active');
+          body.classList.remove('no-scroll');
+        }
+      });
     });
-  </script>
+    // Sidebar toggle functionality
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const servicesSidebar = document.getElementById('servicesSidebar');
+        const overlay = document.getElementById('overlay');
+        const body = document.body;
+        const toggleButton = document.querySelector('.toggle-button');
+        
+        function toggleSidebar() {
+            servicesSidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+            body.classList.toggle('no-scroll');
+            
+            // Toggle button animation
+            if (toggleButton) {
+                toggleButton.classList.toggle('active');
+            }
+        }
+        
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', toggleSidebar);
+        }
+        
+        if (overlay) {
+            overlay.addEventListener('click', toggleSidebar);
+        }
+        
+        if (toggleButton) {
+            toggleButton.addEventListener('click', toggleSidebar);
+        }
+        
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            if (window.innerWidth <= 991 && 
+                servicesSidebar && 
+                !servicesSidebar.contains(event.target) && 
+                sidebarToggle && 
+                !sidebarToggle.contains(event.target) &&
+                !toggleButton.contains(event.target) &&
+                servicesSidebar.classList.contains('active')) {
+                toggleSidebar();
+            }
+        });
+        
+        // Responsive behavior for sidebar
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 991 && servicesSidebar) {
+                servicesSidebar.classList.remove('active');
+                if (overlay) overlay.classList.remove('active');
+                body.classList.remove('no-scroll');
+                if (toggleButton) toggleButton.classList.remove('active');
+            }
+        });
+    </script>
 </body>
 </html>

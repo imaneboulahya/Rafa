@@ -1,0 +1,222 @@
+/* statistics.css - Styles for the statistics page */
+
+/* Main container */
+.statistics-section {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: 'Poppins', sans-serif;
+}
+
+.statistics-section h1 {
+    color: #2c3e50;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* Statistics grid layout */
+.statistics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+}
+
+.stat-card.full-width {
+    grid-column: 1 / -1;
+}
+
+.stat-card h2 {
+    margin-top: 0;
+    color: #2c3e50;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Charts */
+canvas {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 400px;
+}
+
+/* Completion rate */
+.completion-circle {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.circle-progress {
+    position: relative;
+    width: 120px;
+    height: 120px;
+}
+
+.circle-progress svg {
+    width: 100%;
+    height: 100%;
+}
+
+.circle-progress circle {
+    fill: none;
+    stroke-width: 10;
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+}
+
+.circle-progress circle:first-child {
+    stroke: #f1f5f9;
+}
+
+.circle-progress circle:last-child {
+    stroke: #3498db;
+    stroke-dasharray: 0;
+    transition: stroke-dashoffset 1s ease;
+}
+
+.progress-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.completion-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.stat-label {
+    color: #64748b;
+}
+
+.stat-value {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* Revenue stats */
+.revenue-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.revenue-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    background: #f8fafc;
+}
+
+.revenue-item.total {
+    border-left: 4px solid #3498db;
+}
+
+.revenue-item.paid {
+    border-left: 4px solid #38b2ac;
+}
+
+.revenue-item.pending {
+    border-left: 4px solid #e53e3e;
+}
+
+.revenue-label {
+    font-weight: 500;
+}
+
+.revenue-value {
+    font-weight: 600;
+}
+
+/* Top services */
+.top-services-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.top-services-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem;
+    background: #f8fafc;
+    border-radius: 6px;
+}
+
+.service-name {
+    font-weight: 500;
+}
+
+.service-count {
+    background: #3498db;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+}
+
+/* Recent activity */
+.recent-activity {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.activity-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem;
+    background: #f8fafc;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.client-name {
+    font-weight: 500;
+}
+
+.activity-details {
+    color: #64748b;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .completion-circle {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .completion-stats {
+        width: 100%;
+    }
+}

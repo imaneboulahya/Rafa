@@ -1010,7 +1010,69 @@ def delete_transfert(transfer_id):
 
 @app.route('/statistics')
 def statistics():
-    return render_template('statistics.html')
+    """Generate statistics for client progress throughout the year"""
+    # Get current year
+    current_year = datetime.now().year
+    
+    # Monthly client counts
+    monthly_counts = db.session.query(
+        db.func.strftime('%m', Profile.created_at).label('month'),
+        db.func.count(Profile.id).label('count')
+    ).filter(
+        db.func.strftime('%Y', Profile.created_at) == str(current_year)
+    ).group_by('month').all()
+    
+    # Convert to dictionary for easier processing
+    monthly_data = {int(month): count for month, count in monthly_counts}
+    
+    # Fill in missing months with 0
+    complete_monthly_data = [
+        monthly_data.get(month, 0) for month in range(1, 13)
+    ]
+    
+    # Service type distribution
+    service_distribution = db.session.query(
+        Profile.service_type,
+        db.func.count(Profile.id).label('count')
+    ).group_by(Profile.service_type).all()
+    
+    # Completion rates
+    total_clients = db.session.query(Profile).count()
+    completed_clients = db.session.query(Profile).filter_by(service_completed=True).count()
+    completion_rate = (completed_clients / total_clients * 100) if total_clients > 0 else 0
+    
+    # Revenue statistics
+    revenue_stats = {
+        'total': db.session.query(db.func.sum(Profile.total_amount)).scalar() or 0,
+        'paid': db.session.query(db.func.sum(Profile.amount_paid)).scalar() or 0,
+        'pending': db.session.query(
+            db.func.sum(Profile.total_amount - Profile.amount_paid)
+        ).scalar() or 0
+    }
+    
+    # Top services - FIXED THIS SECTION
+    top_services = db.session.query(
+        Profile.service_type,
+        db.func.count(Profile.id).label('count')
+    ).group_by(Profile.service_type) \
+     .order_by(db.desc('count')) \
+     .limit(5).all()
+    
+    # Recent clients
+    recent_clients = db.session.query(Profile) \
+        .order_by(Profile.created_at.desc()) \
+        .limit(5).all()
+    
+    return render_template('statistics.html',
+                         monthly_data=complete_monthly_data,
+                         service_distribution=service_distribution,
+                         completion_rate=round(completion_rate, 2),
+                         revenue_stats=revenue_stats,
+                         top_services=top_services,
+                         recent_clients=recent_clients,
+                         current_year=current_year,
+                         total_clients=total_clients,
+                         completed_clients=completed_clients)
 
 @app.route('/etudiant')
 def etudiant():

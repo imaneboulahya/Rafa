@@ -53,7 +53,7 @@
                 <li><a href="{{ url_for('index') }}">Home</a></li>
                 <li><a href="{{ url_for('create_profile') }}">Create</a></li>
                 <li><a href="{{ url_for('clients') }}">Clients</a></li>
-                <li><a href="#contact">Contact</a></li>
+                <li><a href="{{ url_for('groups') }}">Groups</a></li>
                 <li><button class="sidebar-toggle" id="sidebarToggle">Services</button></li>
             </ul>
         </nav>
@@ -162,5 +162,61 @@
     </footer>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sidebar toggle functionality
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const servicesSidebar = document.getElementById('servicesSidebar');
+            const overlay = document.getElementById('overlay');
+            const body = document.body;
+            
+            function toggleSidebar() {
+                servicesSidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+                body.classList.toggle('no-scroll');
+            }
+            
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', toggleSidebar);
+            }
+            
+            if (overlay) {
+                overlay.addEventListener('click', toggleSidebar);
+            }
+            
+            // Search form clear functionality
+            const searchForm = document.querySelector('.search-form');
+            if (searchForm) {
+                searchForm.addEventListener('submit', function(e) {
+                    const searchInput = this.querySelector('input[name="search"]');
+                    if (searchInput.value.trim() === '') {
+                        e.preventDefault();
+                        window.location.href = "{{ url_for('visa') }}";
+                    }
+                });
+            }
+            
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth <= 991 && 
+                    servicesSidebar && 
+                    !servicesSidebar.contains(event.target) && 
+                    sidebarToggle && 
+                    !sidebarToggle.contains(event.target) &&
+                    servicesSidebar.classList.contains('active')) {
+                    toggleSidebar();
+                }
+            });
+            
+            // Responsive behavior for sidebar
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 991 && servicesSidebar) {
+                    servicesSidebar.classList.remove('active');
+                    if (overlay) overlay.classList.remove('active');
+                    body.classList.remove('no-scroll');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
