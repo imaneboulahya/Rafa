@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Client | Rafa Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/update_client.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Services Sidebar -->
+    <div class="services-sidebar" id="servicesSidebar">
+        <h3 style="color: #ffcc00; border-bottom: 2px solid #ffcc00; padding-bottom: 1rem;">Our Services</h3>
+        <ul class="services-list">
+            <li><a href="{{ url_for('visa') }}">Visa</a></li>
+            <li><a href="{{ url_for('hotel') }}">Hotel</a></li>
+            <li><a href="{{ url_for('billet') }}">Billet</a></li>
+            <li><a href="{{ url_for('hajj') }}">Hajj</a></li>
+            <li><a href="{{ url_for('omra') }}">Omra</a></li>
+            <li><a href="{{ url_for('autocar') }}">Autocar</a></li>
+            <li><a href="{{ url_for('bateau') }}">Bateau</a></li>
+            <li><a href="{{ url_for('traduction') }}">Traduction</a></li>
+            <li><a href="{{ url_for('assurance') }}">Assurance</a></li>
+            <li><a href="{{ url_for('voyage') }}">Voyages organisés</a></li>
+            <li><a href="{{ url_for('transfert') }}">Transfert</a></li>
+            <li><a href="{{ url_for('statistics') }}">Statistics</a></li>
+            <li><a href="{{ url_for('etudiant') }}">Etudiants</a></li>
+        </ul>
+    </div>
+    
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Header/Navigation -->
+    <header class="navbar">
+        <a href="{{ url_for('index') }}" class="logo-link">
+            <img src="{{ url_for('static', filename='images/logo.jpeg') }}" alt="Rafa Logo" class="logo-img" width="150" height="50">
+        </a>
+        
+        <button class="toggle-button" aria-label="Toggle navigation">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+        
+        <nav class="navbar-links">
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('create_profile') }}">Create</a></li>
+                <li><a href="{{ url_for('clients') }}">Clients</a></li>
+                <li><a href="{{ url_for('groups') }}">Groups</a></li>
+                <li><a href="{{ url_for('statistics') }}">Statistics</a></li>
+                <li><button class="sidebar-toggle" id="sidebarToggle">Services</button></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content">
+        <section class="update-client-section">
+            <div class="update-header">
+                <h1>Update Client Information</h1>
+                <p>Edit the details for {{ client.first_name }} {{ client.last_name }}</p>
+            </div>
+            
+            <form method="POST" action="{{ url_for('update_client', client_id=client.id) }}" class="update-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="first_name">First Name</label>
+                        <input type="text" id="first_name" name="first_name" value="{{ client.first_name }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="last_name">Last Name</label>
+                        <input type="text" id="last_name" name="last_name" value="{{ client.last_name }}" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="phone">Phone</label>
+                        <input type="text" id="phone" name="phone" value="{{ client.phone }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" value="{{ client.email if client.email else '' }}">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nationality">Nationality</label>
+                        <input type="text" id="nationality" name="nationality" value="{{ client.nationality }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="passport">Passport Number</label>
+                        <input type="text" id="passport" name="passport" value="{{ client.passport if client.passport else '' }}">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="amount_paid">Amount Paid (DH)</label>
+                        <input type="number" id="amount_paid" name="amount_paid" step="0.01" 
+                               value="{{ client.amount_paid if client.amount_paid is not none else 0 }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="total_amount">Total Amount (DH)</label>
+                        <input type="number" id="total_amount" name="total_amount" step="0.01" 
+                               value="{{ client.total_amount if client.total_amount is not none else 0 }}" required>
+                    </div>
+                </div>
+                
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="service_completed" name="service_completed" 
+                           {% if client.service_completed %}checked{% endif %}>
+                    <label for="service_completed">Service Completed</label>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="save-btn">Save Changes</button>
+                    <a href="{{ url_for('client_detail', client_id=client.id) }}" class="cancel-btn">Cancel</a>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3 class="o">Quick Links</h3>
+                <ul>
+                    <li><a href="{{ url_for('index') }}">Home</a></li>
+                    <li><a href="{{ url_for('create_profile') }}">Create Profile</a></li>
+                    <li><a href="#services">Services</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3 class="o">Contact Us</h3>
+                <ul>
+                    <li>Email: Rafavoyages@gmail.com</li>
+                    <li>Phone: +212 650-212366</li>
+                    <li>Address: 22 Imm Narjiss 1 Av Allal Ben Abdellah, Taza 35000</li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3 class="o">Follow Us</h3>
+                <ul>
+                    <li><a href="https://www.instagram.com/agencerafavoyages">Instagram</a></li>
+                    <li><a href="#">LinkedIn</a></li>
+                    <li><a href="https://www.facebook.com/almassaAgencyTravel">Facebook</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="copyright">
+            <p>&copy; 2025 Rafa Platform. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sidebar toggle functionality
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const servicesSidebar = document.getElementById('servicesSidebar');
+            const overlay = document.getElementById('overlay');
+            const body = document.body;
+            
+            function toggleSidebar() {
+                servicesSidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+                body.classList.toggle('no-scroll');
+            }
+            
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', toggleSidebar);
+            }
+            
+            if (overlay) {
+                overlay.addEventListener('click', toggleSidebar);
+            }
+            
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth <= 991 && 
+                    servicesSidebar && 
+                    !servicesSidebar.contains(event.target) && 
+                    sidebarToggle && 
+                    !sidebarToggle.contains(event.target) &&
+                    servicesSidebar.classList.contains('active')) {
+                    toggleSidebar();
+                }
+            });
+            
+            // Responsive behavior for sidebar
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 991 && servicesSidebar) {
+                    servicesSidebar.classList.remove('active');
+                    if (overlay) overlay.classList.remove('active');
+                    body.classList.remove('no-scroll');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

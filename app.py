@@ -198,6 +198,7 @@ class TransfertForm(FlaskForm):
 def index():
     return render_template('index.html', now=datetime.now())
 
+
 @app.route('/visa')
 def visa():
     search_query = request.args.get('search', '').strip()
@@ -336,15 +337,21 @@ def client_detail(client_id):
     client = Profile.query.get_or_404(client_id)
     return render_template('client.html', client=client)
 
-@app.route('/update_client/<int:client_id>', methods=['POST'])
+@app.route('/update_client/<int:client_id>', methods=['GET', 'POST'])
 def update_client(client_id):
     client = Profile.query.get_or_404(client_id)
-    client.amount_paid = float(request.form.get('amount_paid', 0))
-    client.total_amount = float(request.form.get('total_amount', 0))
-    client.service_completed = 'service_completed' in request.form
-    db.session.commit()
-    flash('Client updated successfully!', 'success')
-    return redirect(url_for('visa'))
+    
+    if request.method == 'POST':
+        # Handle form submission
+        client.amount_paid = float(request.form.get('amount_paid', 0))
+        client.total_amount = float(request.form.get('total_amount', 0))
+        client.service_completed = 'service_completed' in request.form
+        db.session.commit()
+        flash('Client updated successfully!', 'success')
+        return redirect(url_for('visa'))
+    
+    # For GET requests, show the edit form
+    return render_template('update_client.html', client=client)
 
 @app.route('/completed-visas')
 def completed_visas():
