@@ -3,7 +3,7 @@
 <div align="center">
   <img src="static/images/logo.jpeg" alt="Rafa Logo" width="200"/>
   
-  *Luxury Travel Management System*
+  *Travel Management System*
 </div>
 
 ## 🌟 Technical Overview
