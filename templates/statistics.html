@@ -116,7 +116,6 @@
                     </div>
                 </div>
 
-    <!-- [Le reste de votre code existant reste inchangé] -->
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -126,15 +125,12 @@
             
             filterButtons.forEach(button => {
                 button.addEventListener('click', function() {
-                    // Remove active class from all buttons
                     filterButtons.forEach(btn => btn.classList.remove('active'));
                     
-                    // Add active class to clicked button
                     this.classList.add('active');
                     
                     const period = this.getAttribute('data-period');
                     
-                    // Fetch revenue data for the selected period
                     fetch(`/api/revenue?period=${period}`)
                         .then(response => response.json())
                         .then(data => {
